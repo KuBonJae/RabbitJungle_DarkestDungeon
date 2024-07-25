@@ -33,9 +33,27 @@ public class MapController : MonoBehaviour
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        /*if (collision.gameObject.CompareTag("Player"))
         {
             transform.GetChild(0).gameObject.SetActive(true);
+        }*/
+        // Darkest Dungeon -> Player가 콜라이더에 부딪히면, 이벤트 씬 or 전투 진행
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            if (transform.parent.GetComponent<RoomData>().RoomType == RoomType.Cleared.ToString())
+                return;
+
+            transform.parent.GetComponent<RoomData>().RoomType = RoomType.Cleared.ToString();
+
+            int randomNum = Random.Range(0, 10);
+            if(randomNum < 4) // 40% 확률로 Item event
+            {
+                DataManager.Instance.itemEvent = true;
+            }
+            else // 60% 확률로 전투
+            {
+
+            }
         }
     }
 }

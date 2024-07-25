@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using UnityEngine;
 
 public class DataManager : MonoBehaviour
@@ -39,6 +40,22 @@ public class DataManager : MonoBehaviour
     public bool isDead = false;
     public bool firstClassChage = true;
     public bool beHit = false;
+
+    // DarkestDungeon 관련 신규 프로퍼티
+    public BasicHeroSetting[] PartyFormation = new BasicHeroSetting[4] { null, null, null, null };
+    public BasicHeroSetting[] ChangeFormation = new BasicHeroSetting[4] { null, null, null, null };
+    public int HeroNum = 0;
+
+    public bool firstRoom = true;
+    public bool itemEvent = false;
+    public int coin = 0;
+
+    public List<TempStat> tempStats_P1 = new List<TempStat>();
+    public List<TempStat> tempStats_P2 = new List<TempStat>();
+    public List<TempStat> tempStats_P3 = new List<TempStat>();
+    public List<TempStat> tempStats_P4 = new List<TempStat>();
+    public List<TempStat> tempStats_Switch = new List<TempStat>();
+    //
 
     // getset 에 접근하게 해주는 프로퍼티
     public int StageLevel

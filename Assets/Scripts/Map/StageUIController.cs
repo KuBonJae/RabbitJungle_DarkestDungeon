@@ -11,6 +11,7 @@ public class StageUIController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        DataManager.Instance.firstRoom = true;
         stageText.text = "STAGE - " + DataManager.Instance.StageLevel;
         StartCoroutine(FadeOutCoroutine());
     }

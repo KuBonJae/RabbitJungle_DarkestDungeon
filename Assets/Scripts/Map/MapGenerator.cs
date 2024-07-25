@@ -175,31 +175,45 @@ public class StageGenerator : MonoBehaviour
                         currentMap = Instantiate(bossMapPrefab, new Vector3((i - size / 2) * 75, (j - size / 2) * 75, 0), Quaternion.identity);
                         currentMap.GetComponent<RoomData>().RoomType = RoomType.Boss.ToString();
                     }
-                    else if (i == itemRoom.Item1 && j == itemRoom.Item2)
-                    {
-                        currentMap = Instantiate(itemMapPrefab, new Vector3((i - size / 2) * 75, (j - size / 2) * 75, 0), Quaternion.identity);
-                        currentMap.GetComponent<RoomData>().RoomType = RoomType.Item.ToString();
-                        currentMap.transform.Find("Item").GetComponent<SpecialJobController>().specialJobsUI = specialJobUI;
-                        if (DataManager.Instance.Weapon == WeaponType.Gun.ToString())
-                        {
-                            Transform item = currentMap.transform.Find("Item");
-                            item.GetComponent<SpecialJobController>().jobButtons.Add(specialJobUI.transform.Find("Shotgun").GetComponent<UnityEngine.UI.Button>());
-                            item.GetComponent<SpecialJobController>().jobButtons.Add(specialJobUI.transform.Find("Rifle").GetComponent<UnityEngine.UI.Button>());
-                            item.GetComponent<SpecialJobController>().jobButtons.Add(specialJobUI.transform.Find("Sniper").GetComponent<UnityEngine.UI.Button>());
-
-                        }
-                        else if (DataManager.Instance.Weapon == WeaponType.Sword.ToString())
-                        {
-                            Transform item = currentMap.transform.Find("Item");
-                            item.GetComponent<SpecialJobController>().jobButtons.Add(specialJobUI.transform.Find("LongSword").GetComponent<UnityEngine.UI.Button>());
-                            item.GetComponent<SpecialJobController>().jobButtons.Add(specialJobUI.transform.Find("ShortSword").GetComponent<UnityEngine.UI.Button>());
-                            item.GetComponent<SpecialJobController>().jobButtons.Add(specialJobUI.transform.Find("Axe").GetComponent<UnityEngine.UI.Button>());
-                        }
-                    }
+                    // Darkest Dungeon -> 방 진입 시 적 조우, 아이템 획득에 대한 요소는 그때그때마다 확률로 조정할 것이기에 맵 자체만 만들어지고 보스맵만 만들어지면 됨.
+                    //else if (i == itemRoom.Item1 && j == itemRoom.Item2)
+                    //{
+                    //    currentMap = Instantiate(itemMapPrefab, new Vector3((i - size / 2) * 75, (j - size / 2) * 75, 0), Quaternion.identity);
+                    //    currentMap.GetComponent<RoomData>().RoomType = RoomType.Item.ToString();
+                    //    currentMap.transform.Find("Item").GetComponent<SpecialJobController>().specialJobsUI = specialJobUI;
+                    //    if (DataManager.Instance.Weapon == WeaponType.Gun.ToString())
+                    //    {
+                    //        Transform item = currentMap.transform.Find("Item");
+                    //        item.GetComponent<SpecialJobController>().jobButtons.Add(specialJobUI.transform.Find("Shotgun").GetComponent<UnityEngine.UI.Button>());
+                    //        item.GetComponent<SpecialJobController>().jobButtons.Add(specialJobUI.transform.Find("Rifle").GetComponent<UnityEngine.UI.Button>());
+                    //        item.GetComponent<SpecialJobController>().jobButtons.Add(specialJobUI.transform.Find("Sniper").GetComponent<UnityEngine.UI.Button>());
+                    //
+                    //    }
+                    //    else if (DataManager.Instance.Weapon == WeaponType.Sword.ToString())
+                    //    {
+                    //        Transform item = currentMap.transform.Find("Item");
+                    //        item.GetComponent<SpecialJobController>().jobButtons.Add(specialJobUI.transform.Find("LongSword").GetComponent<UnityEngine.UI.Button>());
+                    //        item.GetComponent<SpecialJobController>().jobButtons.Add(specialJobUI.transform.Find("ShortSword").GetComponent<UnityEngine.UI.Button>());
+                    //        item.GetComponent<SpecialJobController>().jobButtons.Add(specialJobUI.transform.Find("Axe").GetComponent<UnityEngine.UI.Button>());
+                    //    }
+                    //}
+                    // *DD
                     else
                     {
-                        currentMap = Instantiate(mapPrefab, new Vector3((i - size / 2) * 75, (j - size / 2) * 75, 0), Quaternion.identity);
-                        currentMap.GetComponent<RoomData>().RoomType = RoomType.Battle.ToString();
+                        // 중심에서 시작
+                        int centerX = size / 2;
+                        int centerY = size / 2;
+                        if(i == centerX && j == centerY) // 첫 방은 그냥 clear
+                        {
+                            currentMap = Instantiate(mapPrefab, new Vector3((i - size / 2) * 75, (j - size / 2) * 75, 0), Quaternion.identity);
+                            currentMap.GetComponent<RoomData>().RoomType = RoomType.Cleared.ToString();
+                        }
+                        else
+                        {
+                            currentMap = Instantiate(mapPrefab, new Vector3((i - size / 2) * 75, (j - size / 2) * 75, 0), Quaternion.identity);
+                            currentMap.GetComponent<RoomData>().RoomType = RoomType.None.ToString();
+                        }
+                        
                     }
                 }
                 //문활성화

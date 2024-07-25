@@ -266,8 +266,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Now, you are able to kill them all....
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: acacc7f660395c148a55fbeb88d027af, type: 2}
+  m_sharedMaterial: {fileID: -8328167320528479276, guid: acacc7f660395c148a55fbeb88d027af, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -402,8 +402,8 @@ MonoBehaviour:
 
     SHURIKEN DAMAGE +1'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: acacc7f660395c148a55fbeb88d027af, type: 2}
+  m_sharedMaterial: {fileID: -8328167320528479276, guid: acacc7f660395c148a55fbeb88d027af, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -536,8 +536,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: EPIC SKILL
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: acacc7f660395c148a55fbeb88d027af, type: 2}
+  m_sharedMaterial: {fileID: -8328167320528479276, guid: acacc7f660395c148a55fbeb88d027af, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
