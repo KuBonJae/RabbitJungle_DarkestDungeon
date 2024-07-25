@@ -12,7 +12,7 @@ public class SupporterSetting : BasicHeroSetting
         //heroMaxDamage += 3;
         //heroBasicSpeed -= 2;
         //heroBasicDodgeRate -= 5;
-        heroClass = "Supporter";
+        heroClass = ClassName.Supporter;
         //heroBasicAccuracy = 100;
         //heroBasicCriticalHit = 5;
     }

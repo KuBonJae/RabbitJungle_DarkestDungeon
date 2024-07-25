@@ -48,7 +48,12 @@ public class DataManager : MonoBehaviour
 
     public bool firstRoom = true;
     public bool itemEvent = false;
+    public bool battleEvent = false;
+    public bool battle_ing = false;
     public int coin = 0;
+
+    public int battleEngageRate = 50;
+    public int itemEngageRate = 50;
 
     public List<TempStat> tempStats_P1 = new List<TempStat>();
     public List<TempStat> tempStats_P2 = new List<TempStat>();

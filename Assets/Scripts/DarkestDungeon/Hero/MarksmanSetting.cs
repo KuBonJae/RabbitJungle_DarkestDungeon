@@ -13,7 +13,7 @@ public class MarksmanSetting : BasicHeroSetting
         heroMaxDamage += 3;
         heroBasicSpeed -= 2;
         heroBasicDodgeRate -= 5;
-        heroClass = "Marksman";
+        heroClass = ClassName.Marksman;
         heroBasicAccuracy = 100;
         heroBasicCriticalHit += 5;
     }

@@ -13,7 +13,7 @@ public class HealerSetting : BasicHeroSetting
         heroMaxDamage -= 1;
         heroBasicSpeed -= 2;
         heroBasicDodgeRate -= 5;
-        heroClass = "Healer";
+        heroClass = ClassName.Healer;
         //heroBasicAccuracy = 100;
         //heroBasicCriticalHit = 5;
     }

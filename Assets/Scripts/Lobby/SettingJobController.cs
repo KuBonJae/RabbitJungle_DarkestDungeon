@@ -22,13 +22,15 @@ public class SettingJobController : MonoBehaviour
         DataManager.Instance.firstRoom = true;
         DataManager.Instance.itemEvent = false;
         DataManager.Instance.coin = 0;
+        DataManager.Instance.battleEngageRate = 50;
+        DataManager.Instance.itemEngageRate = 50;
 
         DataManager.Instance.tempStats_P1 = new List<TempStat>();
         DataManager.Instance.tempStats_P2 = new List<TempStat>();
         DataManager.Instance.tempStats_P3 = new List<TempStat>();
         DataManager.Instance.tempStats_P4 = new List<TempStat>();
         DataManager.Instance.tempStats_Switch = new List<TempStat>();
-}
+    }
 
     // Update is called once per frame
     void Update()
@@ -36,22 +38,22 @@ public class SettingJobController : MonoBehaviour
         if (selectjobCanvas.activeSelf) // DataManager.Instance.PartyFormation[i].heroClass;
         {
             if (DataManager.Instance.PartyFormation[0] != null)
-                HeroName1.GetComponent<TextMeshProUGUI>().text = DataManager.Instance.PartyFormation[0].heroClass;
+                HeroName1.GetComponent<TextMeshProUGUI>().text = DataManager.Instance.PartyFormation[0].heroClass.ToString();
             else
                 HeroName1.GetComponent<TextMeshProUGUI>().text = "";
 
             if (DataManager.Instance.PartyFormation[1] != null)
-                HeroName2.GetComponent<TextMeshProUGUI>().text = DataManager.Instance.PartyFormation[1].heroClass;
+                HeroName2.GetComponent<TextMeshProUGUI>().text = DataManager.Instance.PartyFormation[1].heroClass.ToString();
             else
                 HeroName2.GetComponent<TextMeshProUGUI>().text = "";
 
             if (DataManager.Instance.PartyFormation[2] != null)
-                HeroName3.GetComponent<TextMeshProUGUI>().text = DataManager.Instance.PartyFormation[2].heroClass;
+                HeroName3.GetComponent<TextMeshProUGUI>().text = DataManager.Instance.PartyFormation[2].heroClass.ToString();
             else
                 HeroName3.GetComponent<TextMeshProUGUI>().text = "";
 
             if (DataManager.Instance.PartyFormation[3] != null)
-                HeroName4.GetComponent<TextMeshProUGUI>().text = DataManager.Instance.PartyFormation[3].heroClass;
+                HeroName4.GetComponent<TextMeshProUGUI>().text = DataManager.Instance.PartyFormation[3].heroClass.ToString();
             else
                 HeroName4.GetComponent<TextMeshProUGUI>().text = "";
         }

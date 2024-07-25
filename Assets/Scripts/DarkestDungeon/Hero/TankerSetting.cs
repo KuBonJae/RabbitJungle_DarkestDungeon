@@ -13,7 +13,7 @@ public class TankerSetting : BasicHeroSetting
         heroMaxDamage += 1;
         heroBasicSpeed -= 4;
         heroBasicDodgeRate -= 8;
-        heroClass = "Tanker";
+        heroClass = ClassName.Tanker;
         //heroBasicAccuracy = 100;
         //heroBasicCriticalHit = 5;
     }

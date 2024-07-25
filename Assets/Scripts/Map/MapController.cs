@@ -6,6 +6,8 @@ using UnityEngine;
 public class MapController : MonoBehaviour
 {
 
+    public GameObject BattleManager;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -45,14 +47,28 @@ public class MapController : MonoBehaviour
 
             transform.parent.GetComponent<RoomData>().RoomType = RoomType.Cleared.ToString();
 
-            int randomNum = Random.Range(0, 10);
-            if(randomNum < 4) // 40% È®·ü·Î Item event
+            int randomNum = Random.Range(1, 101);
+            if(randomNum < DataManager.Instance.itemEngageRate) // È®·ü·Î Item event
             {
                 DataManager.Instance.itemEvent = true;
+                if (DataManager.Instance.itemEngageRate > DataManager.Instance.battleEngageRate)
+                    DataManager.Instance.itemEngageRate = DataManager.Instance.battleEngageRate = 50;
+                else
+                {
+                    DataManager.Instance.itemEngageRate -= 5;
+                    DataManager.Instance.battleEngageRate += 5;
+                }
             }
-            else // 60% È®·ü·Î ÀüÅõ
+            else // È®·ü·Î ÀüÅõ
             {
-
+                DataManager.Instance.battleEvent = true;
+                if (DataManager.Instance.itemEngageRate < DataManager.Instance.battleEngageRate)
+                    DataManager.Instance.itemEngageRate = DataManager.Instance.battleEngageRate = 50;
+                else
+                {
+                    DataManager.Instance.itemEngageRate += 5;
+                    DataManager.Instance.battleEngageRate -= 5;
+                }
             }
         }
     }

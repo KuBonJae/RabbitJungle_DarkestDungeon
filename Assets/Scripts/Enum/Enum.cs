@@ -15,6 +15,10 @@ public enum userState
     moving , stop, attaking
 }
 
+public enum ClassName
+{
+    Melee, Marksman, Tanker, Healer, Supporter, Default
+}
 public struct TempStat
 {
     int tempDmg;

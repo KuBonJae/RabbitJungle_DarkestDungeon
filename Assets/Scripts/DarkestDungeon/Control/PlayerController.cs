@@ -43,10 +43,14 @@ public class PlayerController : MonoBehaviour
         {
             map.SetActive(!map.activeSelf);
             keyGuide.SetActive(!keyGuide.activeSelf);
-            if (map.activeSelf)
-                Time.timeScale = 0f;
-            else
-                Time.timeScale = 1f;
+
+            if(!DataManager.Instance.battle_ing) // battle - ing -> battle state -> timescale is 0
+            {
+                if (map.activeSelf)
+                    Time.timeScale = 0f;
+                else
+                    Time.timeScale = 1f;
+            }
         }
     }
 

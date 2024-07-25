@@ -15,5 +15,5 @@ public class BasicHeroSetting
     public int heroBasicAccuracy = 100;
     public int heroBasicCriticalHit = 5;
     public int heroBasicDeathDoor = 67;
-    public string heroClass = "Hero";
+    public ClassName heroClass = ClassName.Default;
 }
