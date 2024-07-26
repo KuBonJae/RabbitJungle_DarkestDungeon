@@ -416,6 +416,19 @@ public class ItemController : MonoBehaviour
                     if(DataManager.Instance.PartyFormation[playerPos].heroHp == 0)
                     {
                         // 죽음의 일격 트리거 -> 일정 확률로 죽거나 살거나
+                        int randomDeathDoor = DataManager.Instance.PartyFormation[playerPos].heroBasicDeathDoor
+                                + (DataManager.Instance.tempStats[playerPos] != null ? DataManager.Instance.tempStats[playerPos].tempDD : 0); // 현재 죽음의 일격 버티는 정도
+                        int randomDeath = UnityEngine.Random.Range(0, 101);
+                        if (randomDeathDoor >= randomDeath) // 숫자가 더 크다 => 버텨냈다
+                        {
+                            //ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 죽음을 버텨냈습니다. " + randomDeath.ToString() + " / " + randomDeath.ToString());
+                            DataManager.Instance.PartyFormation[playerPos].heroBasicDeathDoor -= 5; // 영구적으로 죽문 확률 감소
+                        }
+                        else // 버텨내지 못했다
+                        {
+                            //ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 사망했습니다.");
+                            DataManager.Instance.PartyFormation[playerPos].isDead = true;
+                        }
                     }
                     else
                     {

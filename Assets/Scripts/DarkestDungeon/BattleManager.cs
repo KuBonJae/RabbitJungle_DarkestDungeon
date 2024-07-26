@@ -24,7 +24,7 @@ public class BattleManager : MonoBehaviour
     private Button CurSelectedBtn;
 
     private Queue<string> BattleLog = new Queue<string>();
-    private const int MaxLog = 8;
+    private const int MaxLog = 14;
 
     private int EnemyLeft = 4;
     private int HeroLeft = 4;
@@ -165,11 +165,13 @@ public class BattleManager : MonoBehaviour
 
                     if (SpeedOrder.Peek().Item1 >= 10) // 적군이면
                     {
-                        if(!DataManager.Instance.EnemyFormation[SpeedOrder.Peek().Item1 - 10].isDead)
+                        if (!DataManager.Instance.EnemyFormation[SpeedOrder.Peek().Item1 - 10].isDead)
                         {
                             SkillIcons.SetActive(false);
                             StartCoroutine("BattlePhase_Enemy");
                         }
+                        else
+                            SpeedOrder.Dequeue();
                     }
                     else
                     {
@@ -201,6 +203,8 @@ public class BattleManager : MonoBehaviour
                             }
                             StartCoroutine("BattlePhase_Hero");
                         }
+                        else
+                            SpeedOrder.Dequeue();
                     }
                 }
             }
