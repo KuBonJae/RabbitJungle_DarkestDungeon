@@ -105,7 +105,9 @@ public class BattleManager : MonoBehaviour
 
             int coinAmount = UnityEngine.Random.Range(25 * 4, 100 * 4 + 1);
             DataManager.Instance.coin += coinAmount;
-            Debug.Log("ÄÚÀÎ " + coinAmount.ToString() + " È¹µæ");
+            //Debug.Log("ÄÚÀÎ " + coinAmount.ToString() + " È¹µæ");
+            DataManager.Instance.announcement = "ÄÚÀÎ " + coinAmount.ToString() + " È¹µæ";
+            DataManager.Instance.makeAnnouncement = true;
             BattleCanvas.SetActive(false);
             Time.timeScale = 1f;
         }
@@ -171,7 +173,10 @@ public class BattleManager : MonoBehaviour
                             StartCoroutine("BattlePhase_Enemy");
                         }
                         else
+                        {
                             SpeedOrder.Dequeue();
+                            nextBattleOrder = true;
+                        }
                     }
                     else
                     {
@@ -204,7 +209,10 @@ public class BattleManager : MonoBehaviour
                             StartCoroutine("BattlePhase_Hero");
                         }
                         else
+                        {
                             SpeedOrder.Dequeue();
+                            nextBattleOrder = true;
+                        }
                     }
                 }
             }
@@ -308,7 +316,7 @@ public class BattleManager : MonoBehaviour
                     int randomDeath = UnityEngine.Random.Range(0, 101);
                     if (randomDeathDoor >= randomDeath) // ¼ýÀÚ°¡ ´õ Å©´Ù => ¹öÅß³Â´Ù
                     {
-                        ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(ÀÌ)°¡ Á×À½À» ¹öÅß³Â½À´Ï´Ù. " + randomDeath.ToString() + " / " + randomDeath.ToString());
+                        ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(ÀÌ)°¡ Á×À½À» ¹öÅß³Â½À´Ï´Ù. " + randomDeathDoor.ToString() + " / " + randomDeath.ToString());
                         DataManager.Instance.PartyFormation[HeroDmged].heroBasicDeathDoor -= 5; // ¿µ±¸ÀûÀ¸·Î Á×¹® È®·ü °¨¼Ò
                     }
                     else // ¹öÅß³»Áö ¸øÇß´Ù

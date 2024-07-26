@@ -60,6 +60,9 @@ public class DataManager : MonoBehaviour
 
     public Stat[] tempStats = new Stat[4] { new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0) };
     public Stat[] PermStats = new Stat[4] { new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0) };
+
+    public bool makeAnnouncement = false;
+    public string announcement = "";
     //
 
     // getset 에 접근하게 해주는 프로퍼티

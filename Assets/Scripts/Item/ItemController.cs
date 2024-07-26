@@ -190,7 +190,11 @@ public class ItemController : MonoBehaviour
                 DataManager.Instance.PartyFormation[playerPos].heroHp += rand;
                 if (DataManager.Instance.PartyFormation[playerPos].heroHp > DataManager.Instance.PartyFormation[playerPos].heroMaxHP)
                     DataManager.Instance.PartyFormation[playerPos].heroHp = DataManager.Instance.PartyFormation[playerPos].heroMaxHP;
-                Debug.Log(playerPos.ToString() + "번째 플레이어 :  " + rand.ToString() + "만큼의 체력 회복");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 :  " + rand.ToString() + "만큼의 체력 회복");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : " + rand.ToString() + "만큼의 체력 회복";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Epic_Damage":
                 cardStat = new Stat(rand = Random.Range(1, 6), 0, 0, 0, 0, 0, 0);
@@ -221,7 +225,11 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempDmg += cardStat.tempDmg;
                         break;
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 데미지 " + rand.ToString() + "만큼 증가");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 데미지 " + rand.ToString() + "만큼 증가");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 데미지 " + rand.ToString() + "만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Epic_Dodge":
                 cardStat = new Stat(0, rand = Random.Range(5, 16), 0, 0, 0, 0, 0);
@@ -252,7 +260,11 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempDodge += cardStat.tempDodge;
                         break;
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 회피율 " + rand.ToString() + "% 만큼 증가");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 회피율 " + rand.ToString() + "% 만큼 증가");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 회피율 " + rand.ToString() + "% 만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Epic_Protect":
                 cardStat = new Stat(0, 0, rand = Random.Range(5, 21), 0, 0, 0, 0);
@@ -283,7 +295,11 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempProtect += cardStat.tempProtect;
                         break;
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 데미지 경감률 " + rand.ToString() + "% 만큼 증가");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 데미지 경감률 " + rand.ToString() + "% 만큼 증가");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 데미지 경감률 " + rand.ToString() + "% 만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Epic_Speed":
                 cardStat = new Stat(0, 0, 0, rand = Random.Range(1, 6), 0, 0, 0);
@@ -314,7 +330,11 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempSpeed += cardStat.tempSpeed;
                         break;
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 속도 " + rand.ToString() + "만큼 증가");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 속도 " + rand.ToString() + "만큼 증가");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 속도 " + rand.ToString() + "만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Epic_Acc":
                 cardStat = new Stat(0, 0, 0, 0, rand = Random.Range(5, 21), 0, 0);
@@ -345,7 +365,11 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempAccuracy += cardStat.tempAccuracy;
                         break;
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 명중률 " + rand.ToString() + "% 만큼 증가");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 명중률 " + rand.ToString() + "% 만큼 증가");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 명중률 " + rand.ToString() + "% 만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Epic_Crit":
                 cardStat = new Stat(0, 0, 0, 0, 0, rand = Random.Range(5, 16), 0);
@@ -376,7 +400,11 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempCrit += cardStat.tempCrit;
                         break;
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 치명률 " + rand.ToString() + "% 만큼 증가");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 치명률 " + rand.ToString() + "% 만큼 증가");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 치명률 " + rand.ToString() + "% 만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Epic_DD":
                 cardStat = new Stat(0, 0, 0, 0, 0, 0, rand = Random.Range(5, 21));
@@ -407,7 +435,11 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempDD += cardStat.tempDD;
                         break;
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 죽음 저항 " + rand.ToString() + "% 만큼 증가");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 죽음 저항 " + rand.ToString() + "% 만큼 증가");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 죽음 저항 " + rand.ToString() + "% 만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Normal_Heal":
                 rand = Random.Range(0, 13) - 2;
@@ -421,13 +453,19 @@ public class ItemController : MonoBehaviour
                         int randomDeath = UnityEngine.Random.Range(0, 101);
                         if (randomDeathDoor >= randomDeath) // 숫자가 더 크다 => 버텨냈다
                         {
-                            //ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 죽음을 버텨냈습니다. " + randomDeath.ToString() + " / " + randomDeath.ToString());
+                            //ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 죽음을 버텨냈습니다. " + randomDeathDoor.ToString() + " / " + randomDeath.ToString());
+                            DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + "(이)가 죽음을 버텨냈습니다. " + randomDeathDoor.ToString() + " / " + randomDeath.ToString();
+                            DataManager.Instance.makeAnnouncement = true;
                             DataManager.Instance.PartyFormation[playerPos].heroBasicDeathDoor -= 5; // 영구적으로 죽문 확률 감소
                         }
                         else // 버텨내지 못했다
                         {
                             //ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 사망했습니다.");
+                            DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + "(이)가 사망했습니다.";
+                            DataManager.Instance.makeAnnouncement = true;
                             DataManager.Instance.PartyFormation[playerPos].isDead = true;
+                            //Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(0).gameObject);
+                            //Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
                         }
                     }
                     else
@@ -437,6 +475,8 @@ public class ItemController : MonoBehaviour
                         {
                             DataManager.Instance.PartyFormation[playerPos].heroHp = 0;
                             // 죽음의 문턱 상태 + 죽음의 문턱 디버프 표시
+                            DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + "(이)가 죽음의 문턱 상태입니다.";
+                            DataManager.Instance.makeAnnouncement = true;
                         }
                     }
                 }
@@ -445,8 +485,13 @@ public class ItemController : MonoBehaviour
                     DataManager.Instance.PartyFormation[playerPos].heroHp += rand;
                     if (DataManager.Instance.PartyFormation[playerPos].heroHp > DataManager.Instance.PartyFormation[playerPos].heroMaxHP)
                         DataManager.Instance.PartyFormation[playerPos].heroHp = DataManager.Instance.PartyFormation[playerPos].heroMaxHP;
+
+                    //Debug.Log(playerPos.ToString() + "번째 플레이어 : 체력 " + rand.ToString() + "만큼 회복");
+                    //
+                    DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 체력 " + rand.ToString() + "만큼 회복";
+                    DataManager.Instance.makeAnnouncement = true;
+                    //
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 체력 " + rand.ToString() + "만큼 회복");
                 break;
             case "Normal_Damage":
                 cardStat = new Stat(rand = Random.Range(0, 8) - 2, 0, 0, 0, 0, 0, 0);
@@ -477,7 +522,11 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempDmg += cardStat.tempDmg;
                         break;
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 데미지 " + rand.ToString() + "만큼 증가");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 데미지 " + rand.ToString() + "만큼 증가");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 데미지 " + rand.ToString() + "만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Normal_Dodge":
                 cardStat = new Stat(0, rand = Random.Range(0, 21) - 5, 0, 0, 0, 0, 0);
@@ -508,7 +557,11 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempDodge += cardStat.tempDodge;
                         break;
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 회피율 " + rand.ToString() + "% 만큼 증가");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 회피율 " + rand.ToString() + "% 만큼 증가");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 회피율 " + rand.ToString() + "% 만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Normal_Protect":
                 cardStat = new Stat(0, 0, rand = Random.Range(0, 31) - 10, 0, 0, 0, 0);
@@ -539,7 +592,11 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempProtect += cardStat.tempProtect;
                         break;
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 데미지 경감률 " + rand.ToString() + "% 만큼 증가");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 데미지 경감률 " + rand.ToString() + "% 만큼 증가");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 데미지 경감률 " + rand.ToString() + "% 만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Normal_Speed":
                 cardStat = new Stat(0, 0, 0, rand = Random.Range(0, 8) - 2, 0, 0, 0);
@@ -570,7 +627,11 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempSpeed += cardStat.tempSpeed;
                         break;
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 속도 " + rand.ToString() + "만큼 증가");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 속도 " + rand.ToString() + "만큼 증가");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 속도 " + rand.ToString() + "만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Normal_Acc":
                 cardStat = new Stat(0, 0, 0, 0, rand = Random.Range(0, 21) - 5, 0, 0);
@@ -601,7 +662,10 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempAccuracy += cardStat.tempAccuracy;
                         break;
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 명중률 " + rand.ToString() + "% 만큼 증가");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 명중률 " + rand.ToString() + "% 만큼 증가");
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 명중률 " + rand.ToString() + "% 만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Normal_Crit":
                 cardStat = new Stat(0, 0, 0, 0, 0, rand = Random.Range(0, 16) - 5, 0);
@@ -632,11 +696,14 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempCrit += cardStat.tempCrit;
                         break;
                 }
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 치명률 " + rand.ToString() + "% 만큼 증가");
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 치명률 " + rand.ToString() + "% 만큼 증가");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 치명률 " + rand.ToString() + "% 만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
             case "Normal_DD":
                 cardStat = new Stat(0, 0, 0, 0, 0, 0, rand = Random.Range(0, 21) - 5);
-                Debug.Log(playerPos.ToString() + "번째 플레이어 : 죽음 저항 " + rand.ToString() + "% 만큼 증가");
                 switch (playerPos)
                 {
                     case 0:
@@ -664,6 +731,11 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.tempStats[3].tempDD += cardStat.tempDD;
                         break;
                 }
+                //Debug.Log(playerPos.ToString() + "번째 플레이어 : 죽음 저항 " + rand.ToString() + "% 만큼 증가");
+                //
+                DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 죽음 저항 " + rand.ToString() + "% 만큼 증가";
+                DataManager.Instance.makeAnnouncement = true;
+                //
                 break;
         }
     }
