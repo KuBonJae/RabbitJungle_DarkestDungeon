@@ -114,7 +114,7 @@ public class ItemController : MonoBehaviour
 
     private void ApplyCardEffect(string cardName, int playerPos)
     {
-        TempStat cardStat;
+        Stat cardStat;
         int rand;
         switch (cardName)
         {
@@ -192,134 +192,218 @@ public class ItemController : MonoBehaviour
                 Debug.Log(playerPos.ToString() + "번째 플레이어 :  " + rand.ToString() + "만큼의 체력 회복");
                 break;
             case "Epic_Damage":
-                cardStat = new TempStat(rand = Random.Range(1, 6), 0, 0, 0, 0, 0, 0);
+                cardStat = new Stat(rand = Random.Range(1, 6), 0, 0, 0, 0, 0, 0);
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempDmg += cardStat.tempDmg;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else                               
+                            DataManager.Instance.tempStats[1].tempDmg += cardStat.tempDmg;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else                               
+                            DataManager.Instance.tempStats[2].tempDmg += cardStat.tempDmg;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else                               
+                            DataManager.Instance.tempStats[3].tempDmg += cardStat.tempDmg;
                         break;
                 }
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 데미지 " + rand.ToString() + "만큼 증가");
                 break;
             case "Epic_Dodge":
-                cardStat = new TempStat(0, rand = Random.Range(5, 16), 0, 0, 0, 0, 0);
+                cardStat = new Stat(0, rand = Random.Range(5, 16), 0, 0, 0, 0, 0);
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempDodge += cardStat.tempDodge;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[1].tempDodge += cardStat.tempDodge;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[2].tempDodge += cardStat.tempDodge;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[3].tempDodge += cardStat.tempDodge;
                         break;
                 }
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 회피율 " + rand.ToString() + "% 만큼 증가");
                 break;
             case "Epic_Protect":
-                cardStat = new TempStat(0, 0, rand = Random.Range(5, 21), 0, 0, 0, 0);
+                cardStat = new Stat(0, 0, rand = Random.Range(5, 21), 0, 0, 0, 0);
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempProtect += cardStat.tempProtect;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[1].tempProtect += cardStat.tempProtect;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[2].tempProtect += cardStat.tempProtect;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[3].tempProtect += cardStat.tempProtect;
                         break;
                 }
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 데미지 경감률 " + rand.ToString() + "% 만큼 증가");
                 break;
             case "Epic_Speed":
-                cardStat = new TempStat(0, 0, 0, rand = Random.Range(1, 6), 0, 0, 0);
+                cardStat = new Stat(0, 0, 0, rand = Random.Range(1, 6), 0, 0, 0);
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempSpeed += cardStat.tempSpeed;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[1].tempSpeed += cardStat.tempSpeed;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[2].tempSpeed += cardStat.tempSpeed;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[3].tempSpeed += cardStat.tempSpeed;
                         break;
                 }
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 속도 " + rand.ToString() + "만큼 증가");
                 break;
             case "Epic_Acc":
-                cardStat = new TempStat(0, 0, 0, 0, rand = Random.Range(5, 21), 0, 0);
+                cardStat = new Stat(0, 0, 0, 0, rand = Random.Range(5, 21), 0, 0);
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempAccuracy += cardStat.tempAccuracy;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[1].tempAccuracy += cardStat.tempAccuracy;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[2].tempAccuracy += cardStat.tempAccuracy;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[3].tempAccuracy += cardStat.tempAccuracy;
                         break;
                 }
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 명중률 " + rand.ToString() + "% 만큼 증가");
                 break;
             case "Epic_Crit":
-                cardStat = new TempStat(0, 0, 0, 0, 0, rand = Random.Range(5, 16), 0);
+                cardStat = new Stat(0, 0, 0, 0, 0, rand = Random.Range(5, 16), 0);
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempCrit += cardStat.tempCrit;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[1].tempCrit += cardStat.tempCrit;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[2].tempCrit += cardStat.tempCrit;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[3].tempCrit += cardStat.tempCrit;
                         break;
                 }
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 치명률 " + rand.ToString() + "% 만큼 증가");
                 break;
             case "Epic_DD":
-                cardStat = new TempStat(0, 0, 0, 0, 0, 0, rand = Random.Range(5, 21));
+                cardStat = new Stat(0, 0, 0, 0, 0, 0, rand = Random.Range(5, 21));
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempDD += cardStat.tempDD;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[1].tempDD += cardStat.tempDD;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[2].tempDD += cardStat.tempDD;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[3].tempDD += cardStat.tempDD;
                         break;
                 }
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 죽음 저항 " + rand.ToString() + "% 만큼 증가");
@@ -351,135 +435,219 @@ public class ItemController : MonoBehaviour
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 체력 " + rand.ToString() + "만큼 회복");
                 break;
             case "Normal_Damage":
-                cardStat = new TempStat(rand = Random.Range(0, 8) - 2, 0, 0, 0, 0, 0, 0);
+                cardStat = new Stat(rand = Random.Range(0, 8) - 2, 0, 0, 0, 0, 0, 0);
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempDmg += cardStat.tempDmg;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[1].tempDmg += cardStat.tempDmg;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[2].tempDmg += cardStat.tempDmg;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[3].tempDmg += cardStat.tempDmg;
                         break;
                 }
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 데미지 " + rand.ToString() + "만큼 증가");
                 break;
             case "Normal_Dodge":
-                cardStat = new TempStat(0, rand = Random.Range(0, 21) - 5, 0, 0, 0, 0, 0);
+                cardStat = new Stat(0, rand = Random.Range(0, 21) - 5, 0, 0, 0, 0, 0);
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempDodge += cardStat.tempDodge;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[1].tempDodge += cardStat.tempDodge;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[2].tempDodge += cardStat.tempDodge;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[3].tempDodge += cardStat.tempDodge;
                         break;
                 }
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 회피율 " + rand.ToString() + "% 만큼 증가");
                 break;
             case "Normal_Protect":
-                cardStat = new TempStat(0, 0, rand = Random.Range(0, 31) - 10, 0, 0, 0, 0);
+                cardStat = new Stat(0, 0, rand = Random.Range(0, 31) - 10, 0, 0, 0, 0);
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempProtect += cardStat.tempProtect;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[1].tempProtect += cardStat.tempProtect;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[2].tempProtect += cardStat.tempProtect;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[3].tempProtect += cardStat.tempProtect;
                         break;
                 }
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 데미지 경감률 " + rand.ToString() + "% 만큼 증가");
                 break;
             case "Normal_Speed":
-                cardStat = new TempStat(0, 0, 0, rand = Random.Range(0, 8) - 2, 0, 0, 0);
+                cardStat = new Stat(0, 0, 0, rand = Random.Range(0, 8) - 2, 0, 0, 0);
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempSpeed += cardStat.tempSpeed;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[1].tempSpeed += cardStat.tempSpeed;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[2].tempSpeed += cardStat.tempSpeed;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[3].tempSpeed += cardStat.tempSpeed;
                         break;
                 }
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 속도 " + rand.ToString() + "만큼 증가");
                 break;
             case "Normal_Acc":
-                cardStat = new TempStat(0, 0, 0, 0, rand = Random.Range(0, 21) - 5, 0, 0);
+                cardStat = new Stat(0, 0, 0, 0, rand = Random.Range(0, 21) - 5, 0, 0);
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempAccuracy += cardStat.tempAccuracy;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[1].tempAccuracy += cardStat.tempAccuracy;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[2].tempAccuracy += cardStat.tempAccuracy;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[3].tempAccuracy += cardStat.tempAccuracy;
                         break;
                 }
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 명중률 " + rand.ToString() + "% 만큼 증가");
                 break;
             case "Normal_Crit":
-                cardStat = new TempStat(0, 0, 0, 0, 0, rand = Random.Range(0, 16) - 5, 0);
+                cardStat = new Stat(0, 0, 0, 0, 0, rand = Random.Range(0, 16) - 5, 0);
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempCrit += cardStat.tempCrit;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[1].tempCrit += cardStat.tempCrit;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[2].tempCrit += cardStat.tempCrit;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[3].tempCrit += cardStat.tempCrit;
                         break;
                 }
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 치명률 " + rand.ToString() + "% 만큼 증가");
                 break;
             case "Normal_DD":
-                cardStat = new TempStat(0, 0, 0, 0, 0, 0, rand = Random.Range(0, 21) - 5);
+                cardStat = new Stat(0, 0, 0, 0, 0, 0, rand = Random.Range(0, 21) - 5);
                 Debug.Log(playerPos.ToString() + "번째 플레이어 : 죽음 저항 " + rand.ToString() + "% 만큼 증가");
                 switch (playerPos)
                 {
                     case 0:
-                        DataManager.Instance.tempStats_P1.Add(cardStat);
+                        if (DataManager.Instance.tempStats[0] == null)
+                            DataManager.Instance.tempStats[0] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[0].tempDD += cardStat.tempDD;
                         break;
                     case 1:
-                        DataManager.Instance.tempStats_P2.Add(cardStat);
+                        if (DataManager.Instance.tempStats[1] == null)
+                            DataManager.Instance.tempStats[1] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[1].tempDD += cardStat.tempDD;
                         break;
                     case 2:
-                        DataManager.Instance.tempStats_P3.Add(cardStat);
+                        if (DataManager.Instance.tempStats[2] == null)
+                            DataManager.Instance.tempStats[2] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[2].tempDD += cardStat.tempDD;
                         break;
                     case 3:
-                        DataManager.Instance.tempStats_P4.Add(cardStat);
+                        if (DataManager.Instance.tempStats[3] == null)
+                            DataManager.Instance.tempStats[3] = cardStat;
+                        else
+                            DataManager.Instance.tempStats[3].tempDD += cardStat.tempDD;
                         break;
                 }
                 break;

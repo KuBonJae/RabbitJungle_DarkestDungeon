@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class HealerSetting : BasicHeroSetting
 {
+    public int minHealAmount = 2;
+    public int maxHealAmount = 6;
     public HealerSetting()
     {
         heroMaxHP -= 5;

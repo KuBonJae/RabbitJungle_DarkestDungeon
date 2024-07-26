@@ -17,6 +17,7 @@ public class SettingJobController : MonoBehaviour
     {
         DataManager.Instance.PartyFormation = new BasicHeroSetting[4] { null, null, null, null };
         DataManager.Instance.ChangeFormation = new BasicHeroSetting[4] { null, null, null, null };
+        DataManager.Instance.EnemyFormation = new BasicEnemySetting[4] { null, null, null, null };
         DataManager.Instance.HeroNum = 0;
 
         DataManager.Instance.firstRoom = true;
@@ -25,11 +26,7 @@ public class SettingJobController : MonoBehaviour
         DataManager.Instance.battleEngageRate = 50;
         DataManager.Instance.itemEngageRate = 50;
 
-        DataManager.Instance.tempStats_P1 = new List<TempStat>();
-        DataManager.Instance.tempStats_P2 = new List<TempStat>();
-        DataManager.Instance.tempStats_P3 = new List<TempStat>();
-        DataManager.Instance.tempStats_P4 = new List<TempStat>();
-        DataManager.Instance.tempStats_Switch = new List<TempStat>();
+        DataManager.Instance.tempStats = new Stat[4] { null, null, null, null }; 
     }
 
     // Update is called once per frame

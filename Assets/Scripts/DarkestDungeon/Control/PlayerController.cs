@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using System.Runtime.ConstrainedExecution;
 
 public class PlayerController : MonoBehaviour
 {
@@ -44,6 +45,8 @@ public class PlayerController : MonoBehaviour
             map.SetActive(!map.activeSelf);
             keyGuide.SetActive(!keyGuide.activeSelf);
 
+            UpdatePlayerStat();
+
             if(!DataManager.Instance.battle_ing) // battle - ing -> battle state -> timescale is 0
             {
                 if (map.activeSelf)
@@ -51,6 +54,34 @@ public class PlayerController : MonoBehaviour
                 else
                     Time.timeScale = 1f;
             }
+        }
+    }
+
+    private void UpdatePlayerStat()
+    {
+        for(int i=0;i<4;i++)
+        {
+            string playerStat = "";
+            playerStat += "Player" + (i + 1).ToString() + " : " + DataManager.Instance.PartyFormation[i].heroClass.ToString() + "\n";
+            playerStat += "Hp : " + DataManager.Instance.PartyFormation[i].heroHp.ToString() + " / " + DataManager.Instance.PartyFormation[i].heroMaxHP.ToString() + "\n";
+            playerStat += "Stress : " + DataManager.Instance.PartyFormation[i].heroStress.ToString() + "\n";
+            playerStat += "State : " + DataManager.Instance.PartyFormation[i].Stress.ToString() + "\n";
+            playerStat += "Dmg : " + DataManager.Instance.PartyFormation[i].heroMinDamage.ToString() + " / " + DataManager.Instance.PartyFormation[i].heroMaxDamage.ToString() + " + (" +
+                (DataManager.Instance.tempStats[i] != null ? DataManager.Instance.tempStats[i].tempDmg.ToString() : "0") + ")\n";
+            playerStat += "Dodge : " + DataManager.Instance.PartyFormation[i].heroBasicDodgeRate.ToString() + " + (" +
+                (DataManager.Instance.tempStats[i] != null ? DataManager.Instance.tempStats[i].tempDodge.ToString() : "0") + ")\n";
+            playerStat += "Crit : " + DataManager.Instance.PartyFormation[i].heroBasicCriticalHit.ToString() + " + (" +
+                (DataManager.Instance.tempStats[i] != null ? DataManager.Instance.tempStats[i].tempCrit.ToString() : "0") + ")\n";
+            playerStat += "Protect : " + DataManager.Instance.PartyFormation[i].heroBasicProtection.ToString() + " + (" +
+                (DataManager.Instance.tempStats[i] != null ? DataManager.Instance.tempStats[i].tempProtect.ToString() : "0") + ")\n";
+            playerStat += "Speed : " + DataManager.Instance.PartyFormation[i].heroBasicSpeed.ToString() + " + (" +
+                (DataManager.Instance.tempStats[i] != null ? DataManager.Instance.tempStats[i].tempSpeed.ToString() : "0") + ")\n";
+            playerStat += "Accuracy : " + DataManager.Instance.PartyFormation[i].heroBasicAccuracy.ToString() + " + (" +
+                (DataManager.Instance.tempStats[i] != null ? DataManager.Instance.tempStats[i].tempAccuracy.ToString() : "0") + ")\n";
+            playerStat += "Death Resist : " + DataManager.Instance.PartyFormation[i].heroBasicDeathDoor.ToString() + " + (" +
+                (DataManager.Instance.tempStats[i] != null ? DataManager.Instance.tempStats[i].tempDD.ToString() : "0") + ")\n";
+
+            map.transform.Find("KeyGuide").GetChild(i + 1).GetComponent<TextMeshProUGUI>().text = playerStat;
         }
     }
 

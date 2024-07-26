@@ -44,6 +44,9 @@ public class DataManager : MonoBehaviour
     // DarkestDungeon 관련 신규 프로퍼티
     public BasicHeroSetting[] PartyFormation = new BasicHeroSetting[4] { null, null, null, null };
     public BasicHeroSetting[] ChangeFormation = new BasicHeroSetting[4] { null, null, null, null };
+
+    public BasicEnemySetting[] EnemyFormation = new BasicEnemySetting[4] { null, null, null, null };
+
     public int HeroNum = 0;
 
     public bool firstRoom = true;
@@ -55,11 +58,8 @@ public class DataManager : MonoBehaviour
     public int battleEngageRate = 50;
     public int itemEngageRate = 50;
 
-    public List<TempStat> tempStats_P1 = new List<TempStat>();
-    public List<TempStat> tempStats_P2 = new List<TempStat>();
-    public List<TempStat> tempStats_P3 = new List<TempStat>();
-    public List<TempStat> tempStats_P4 = new List<TempStat>();
-    public List<TempStat> tempStats_Switch = new List<TempStat>();
+    public Stat[] tempStats = new Stat[4] { null, null, null, null };
+    public Stat[] PermStats = new Stat[4] { null, null, null, null };
     //
 
     // getset 에 접근하게 해주는 프로퍼티
