@@ -58,8 +58,8 @@ public class DataManager : MonoBehaviour
     public int battleEngageRate = 50;
     public int itemEngageRate = 50;
 
-    public Stat[] tempStats = new Stat[4] { null, null, null, null };
-    public Stat[] PermStats = new Stat[4] { null, null, null, null };
+    public Stat[] tempStats = new Stat[4] { new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0) };
+    public Stat[] PermStats = new Stat[4] { new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0) };
     //
 
     // getset 에 접근하게 해주는 프로퍼티

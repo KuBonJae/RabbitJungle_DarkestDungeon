@@ -53,6 +53,11 @@ public class BattleManager : MonoBehaviour
 
     PriorityQueue SpeedOrder;
 
+    GameObject moveObject = null;
+    Vector3 destination;
+    Vector3 origin;
+    float moveTime = 0f;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -110,6 +115,7 @@ public class BattleManager : MonoBehaviour
             DataManager.Instance.battleEvent = false;
             while (BattleLog.Count > 0)
                 BattleLog.Dequeue();
+            SkillIcons.SetActive(false);
             StartCoroutine("BattleSetting");
         }
         
@@ -123,6 +129,15 @@ public class BattleManager : MonoBehaviour
             battleStart = false;
             TurnEnd = false;
             BattleCanvas.transform.Find("TurnCount").GetComponent<TextMeshProUGUI>().text = "현재 턴 : " + (++TurnCount).ToString();
+            for(int i=0;i<4;i++)
+            {
+                if (DataManager.Instance.PartyFormation[i].heroBasicProtection != 0) // 탱커가 준 보호 버프가 존재한다면
+                {
+                    DataManager.Instance.PartyFormation[i].heroBuffRemain--; // 버프 유지 횟수 감소
+                    if (DataManager.Instance.PartyFormation[i].heroBuffRemain <= 0)
+                        DataManager.Instance.PartyFormation[i].heroBasicProtection = 0;
+                }
+            }
             shouldCheckingOrder = true;
             CheckAttackOrder();
         }
@@ -150,20 +165,96 @@ public class BattleManager : MonoBehaviour
 
                     if (SpeedOrder.Peek().Item1 >= 10) // 적군이면
                     {
-                        StartCoroutine("BattlePhase_Enemy");
+                        if(!DataManager.Instance.EnemyFormation[SpeedOrder.Peek().Item1 - 10].isDead)
+                        {
+                            SkillIcons.SetActive(false);
+                            StartCoroutine("BattlePhase_Enemy");
+                        }
                     }
                     else
                     {
-                        StartCoroutine("BattlePhase_Hero");
+                        if (!DataManager.Instance.PartyFormation[SpeedOrder.Peek().Item1].isDead)
+                        {
+                            SkillIcons.SetActive(true);
+                            switch (DataManager.Instance.PartyFormation[SpeedOrder.Peek().Item1].heroClass)
+                            {
+                                case ClassName.Melee:
+                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "ATK";
+                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "ATK\nFront Double";
+                                    break;
+                                case ClassName.Marksman:
+                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "ATK";
+                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "ATK\nBack Double";
+                                    break;
+                                case ClassName.Tanker:
+                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "ATK";
+                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "Protect Buff";
+                                    break;
+                                case ClassName.Healer:
+                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "ATK";
+                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "Heal";
+                                    break;
+                                case ClassName.Supporter:
+                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "ATK";
+                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "Stress\nDown";
+                                    break;
+                            }
+                            StartCoroutine("BattlePhase_Hero");
+                        }
                     }
                 }
             }
         }
+
+        if (moveObject != null)
+        {
+            if(moveTime < 1.5f)
+            {
+                moveObject.transform.localPosition = Vector3.MoveTowards(moveObject.transform.localPosition, destination, Time.unscaledDeltaTime * 50);
+                moveTime += Time.unscaledDeltaTime;
+            }
+            else
+            {
+                moveObject.transform.localPosition = Vector3.MoveTowards(moveObject.transform.localPosition, origin, Time.unscaledDeltaTime * 50);
+                moveTime += Time.unscaledDeltaTime;
+                if (moveObject.transform.localPosition == origin || moveTime >= 3f)
+                {
+                    moveTime = 0f;
+                    moveObject = null;
+                }
+            }
+        }
+
+        if(BattleCanvas.activeSelf)
+            UpdateHpAndStress();
     }
-    
+
+    void UpdateHpAndStress()
+    {
+        for(int i=0; i<4; i++)
+        {
+            TextMeshProUGUI TEXT = BattleCanvas.transform.Find("Player" + (i + 1).ToString()).transform.Find("HpStress").GetComponent<TextMeshProUGUI>();
+            if (DataManager.Instance.PartyFormation[i].isDead)
+                TEXT.text = "<color=\"red\">Dead </color>";
+            else
+            {
+                TEXT.text = "<color=\"red\">" + DataManager.Instance.PartyFormation[i].heroHp.ToString() + " / " + DataManager.Instance.PartyFormation[i].heroMaxHP.ToString()
+                    + "</color>\n" + DataManager.Instance.PartyFormation[i].heroStress.ToString();
+            }
+            TEXT = BattleCanvas.transform.Find("Enemy" + (i + 1).ToString()).transform.Find("HpStress").GetComponent<TextMeshProUGUI>();
+            if (DataManager.Instance.EnemyFormation[i].isDead)
+                TEXT.text = "<color=\"red\">Dead </color>";
+            else
+            {
+                TEXT.text = "<color=\"red\">" + DataManager.Instance.EnemyFormation[i].Hp.ToString() + " / " + DataManager.Instance.EnemyFormation[i].MaxHP.ToString() + "</color>";
+            }
+        }
+        
+    }
+
     IEnumerator BattlePhase_Enemy()
     {
-        Tuple<int, int> WhoseTurn = SpeedOrder.Dequeue();
+        Tuple<int, int> WhoseTurn = SpeedOrder.Peek();
         
         CurEnemy = WhoseTurn.Item1 - 10;
         // 적군의 스킬을 하나 랜덤하게 선택
@@ -184,7 +275,9 @@ public class BattleManager : MonoBehaviour
             }
 
             ShowBattleLog("Enemy" + (CurEnemy + 1).ToString() + "(이)가 " + "Player" + (HeroDmged + 1).ToString() + "에게 공격!");
-
+            destination = new Vector3(-1, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.localPosition.y, 0);
+            moveObject = BattleScene.transform.Find("Enemy" + (CurEnemy + 1).ToString()).gameObject;
+            origin = moveObject.transform.localPosition;
             yield return new WaitForSecondsRealtime(1.5f);
             // 아군의 회피율을 확인해서 회피 확인
             int HeroDodgeRate = DataManager.Instance.PartyFormation[HeroDmged].heroBasicDodgeRate
@@ -224,7 +317,9 @@ public class BattleManager : MonoBehaviour
                 }
                 else // 죽음의 문턱은 아니다
                 {
-                    DataManager.Instance.PartyFormation[HeroDmged].heroHp -= randomDmg;
+                    // 경감률에 따라 데미지 경감
+                    DataManager.Instance.PartyFormation[HeroDmged].heroHp -= randomDmg * 
+                        ((100 - DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100);
                     ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + randomDmg.ToString() + " 만큼의 데미지");
                     if (DataManager.Instance.PartyFormation[HeroDmged].heroHp <= 0)
                     {
@@ -249,8 +344,10 @@ public class BattleManager : MonoBehaviour
                     break;
             }
 
-            //ShowBattleLog("Enemy" + (CurEnemy + 1).ToString() + "의 공격!");
             ShowBattleLog("Enemy" + (CurEnemy + 1).ToString() + "(이)가 " + "Player" + (HeroDmged + 1).ToString() + "에게 공격!");
+            destination = new Vector3(-1, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.localPosition.y, 0);
+            moveObject = BattleScene.transform.Find("Enemy" + (CurEnemy + 1).ToString()).gameObject;
+            origin = moveObject.transform.localPosition;
             yield return new WaitForSecondsRealtime(1.5f);
 
             // 아군의 회피율을 확인해서 회피 확인
@@ -335,7 +432,9 @@ public class BattleManager : MonoBehaviour
                     }
                     else // 죽음의 문턱은 아니다
                     {
-                        DataManager.Instance.PartyFormation[HeroDmged].heroHp -= randomDmg / 2;
+                        // 경감률에 따라 데미지 감소
+                        DataManager.Instance.PartyFormation[HeroDmged].heroHp -= (randomDmg / 2) * 
+                            ((100 - DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100);
                         ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg / 2).ToString() + " 만큼의 데미지");
                         if (DataManager.Instance.PartyFormation[HeroDmged].heroHp <= 0)
                         {
@@ -388,12 +487,13 @@ public class BattleManager : MonoBehaviour
         }
 
         yield return new WaitForSecondsRealtime(2f);
+        SpeedOrder.Dequeue();
         nextBattleOrder = true;
     }
 
     IEnumerator BattlePhase_Hero()
     {
-        Tuple<int, int> WhoseTurn = SpeedOrder.Dequeue();
+        Tuple<int, int> WhoseTurn = SpeedOrder.Peek();
         /*if(WhoseTurn.Item1 >= 10) // 적군
         {
             CurEnemy = WhoseTurn.Item1 - 10;
@@ -641,6 +741,10 @@ public class BattleManager : MonoBehaviour
                             SelectedEnemy = 3;
 
                         ShowBattleLog("Player" + (CurHero + 1).ToString() + " : " + DataManager.Instance.PartyFormation[CurHero].heroClass.ToString() + " 의 공격!");
+                        SkillIcons.SetActive(false);
+                        destination = new Vector3(1, BattleScene.transform.Find("Enemy" + (SelectedEnemy + 1).ToString()).transform.localPosition.y, 0);
+                        moveObject = BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).gameObject;
+                        origin = moveObject.transform.localPosition;
                         yield return new WaitForSecondsRealtime(1.5f);
 
                         int dodgeRate = DataManager.Instance.EnemyFormation[SelectedEnemy].BasicDodgeRate; // 해당 적의 회피율 가져오기
@@ -702,6 +806,10 @@ public class BattleManager : MonoBehaviour
                     if (DataManager.Instance.PartyFormation[CurHero].heroClass == ClassName.Melee) // 앞 두놈을 떄리는 광역기
                     {
                         ShowBattleLog("Player" + (CurHero + 1).ToString() + " : " + DataManager.Instance.PartyFormation[CurHero].heroClass.ToString() + " 의 공격!");
+                        SkillIcons.SetActive(false);
+                        destination = new Vector3(1, -1.5f, 0);
+                        moveObject = BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).gameObject;
+                        origin = moveObject.transform.localPosition;
                         yield return new WaitForSecondsRealtime(1.5f);
 
                         for (int i = 0; i < 2; i++)
@@ -771,6 +879,10 @@ public class BattleManager : MonoBehaviour
                     else if (DataManager.Instance.PartyFormation[CurHero].heroClass == ClassName.Marksman)
                     {
                         ShowBattleLog("Player" + (CurHero + 1).ToString() + " : " + DataManager.Instance.PartyFormation[CurHero].heroClass.ToString() + " 의 공격!");
+                        SkillIcons.SetActive(false);
+                        destination = new Vector3(1, 1.5f, 0);
+                        moveObject = BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).gameObject;
+                        origin = moveObject.transform.localPosition;
                         yield return new WaitForSecondsRealtime(1.5f);
 
                         for (int i = 2; i < 4; i++)
@@ -840,10 +952,11 @@ public class BattleManager : MonoBehaviour
                     else if (DataManager.Instance.PartyFormation[CurHero].heroClass == ClassName.Tanker)
                     {
                         ShowBattleLog("Player" + (CurHero + 1).ToString() + " : " + DataManager.Instance.PartyFormation[CurHero].heroClass.ToString() + " 의 경감 버프!");
+                        SkillIcons.SetActive(false);
                         for (int i = 0; i < 4; i++)
                         {
                             if (DataManager.Instance.PartyFormation[i].heroBuffRemain != 0) // 버프가 없는 상태였다면
-                                DataManager.Instance.PartyFormation[i].heroBasicProtection += 20; // 버프 추가
+                                DataManager.Instance.PartyFormation[i].heroBasicProtection = 20; // 버프 추가
                             DataManager.Instance.PartyFormation[i].heroBuffRemain = 2; // 버프 횟수 2턴
                         }
                         break;
@@ -862,6 +975,7 @@ public class BattleManager : MonoBehaviour
                             DataManager.Instance.PartyFormation[0].heroHp += randomHeal;
                             if (DataManager.Instance.PartyFormation[0].heroHp > DataManager.Instance.PartyFormation[0].heroMaxHP)
                                 DataManager.Instance.PartyFormation[0].heroHp = DataManager.Instance.PartyFormation[0].heroMaxHP;
+                            SkillIcons.SetActive(false);
                             ShowBattleLog("Player1이 " + randomHeal.ToString() + "만큼의 체력 회복");
                             break;
                         }
@@ -878,6 +992,7 @@ public class BattleManager : MonoBehaviour
                             if (DataManager.Instance.PartyFormation[1].heroHp > DataManager.Instance.PartyFormation[1].heroMaxHP)
                                 DataManager.Instance.PartyFormation[1].heroHp = DataManager.Instance.PartyFormation[1].heroMaxHP;
                             ShowBattleLog("Player2이 " + randomHeal.ToString() + "만큼의 체력 회복");
+                            SkillIcons.SetActive(false);
                             break;
                         }
                         else if (thirdHeroClicked)
@@ -893,6 +1008,7 @@ public class BattleManager : MonoBehaviour
                             if (DataManager.Instance.PartyFormation[2].heroHp > DataManager.Instance.PartyFormation[2].heroMaxHP)
                                 DataManager.Instance.PartyFormation[2].heroHp = DataManager.Instance.PartyFormation[2].heroMaxHP;
                             ShowBattleLog("Player3이 " + randomHeal.ToString() + "만큼의 체력 회복");
+                            SkillIcons.SetActive(false);
                             break;
                         }
                         else if (fourthHeroClicked)
@@ -908,6 +1024,7 @@ public class BattleManager : MonoBehaviour
                             if (DataManager.Instance.PartyFormation[3].heroHp > DataManager.Instance.PartyFormation[3].heroMaxHP)
                                 DataManager.Instance.PartyFormation[3].heroHp = DataManager.Instance.PartyFormation[3].heroMaxHP;
                             ShowBattleLog("Player4이 " + randomHeal.ToString() + "만큼의 체력 회복");
+                            SkillIcons.SetActive(false);
                             break;
                         }
                         else
@@ -933,6 +1050,7 @@ public class BattleManager : MonoBehaviour
                                     DataManager.Instance.PartyFormation[0].Stress = Stress.Default;
                             }
                             ShowBattleLog("Player1이 " + randomHeal.ToString() + "만큼의 스트레스 회복");
+                            SkillIcons.SetActive(false);
                             break;
                         }
                         else if (secondHeroClicked)
@@ -953,6 +1071,7 @@ public class BattleManager : MonoBehaviour
                                     DataManager.Instance.PartyFormation[1].Stress = Stress.Default;
                             }
                             ShowBattleLog("Player2이 " + randomHeal.ToString() + "만큼의 스트레스 회복");
+                            SkillIcons.SetActive(false);
                             break;
                         }
                         else if (thirdHeroClicked)
@@ -973,6 +1092,7 @@ public class BattleManager : MonoBehaviour
                                     DataManager.Instance.PartyFormation[2].Stress = Stress.Default;
                             }
                             ShowBattleLog("Player3이 " + randomHeal.ToString() + "만큼의 스트레스 회복");
+                            SkillIcons.SetActive(false);
                             break;
                         }
                         else if (fourthHeroClicked)
@@ -993,6 +1113,7 @@ public class BattleManager : MonoBehaviour
                                     DataManager.Instance.PartyFormation[3].Stress = Stress.Default;
                             }
                             ShowBattleLog("Player4이 " + randomHeal.ToString() + "만큼의 스트레스 회복");
+                            SkillIcons.SetActive(false);
                             break;
                         }
                     }
@@ -1002,6 +1123,7 @@ public class BattleManager : MonoBehaviour
             }
 
             yield return new WaitForSecondsRealtime(2f);
+            SpeedOrder.Dequeue();
             nextBattleOrder = true;
         }
     }
@@ -1335,44 +1457,52 @@ public class BattleManager : MonoBehaviour
     {
         SelectedEnemy = 0;
         firstEnemyClicked = true;
+        EventSystem.current.GetComponent<EventSystem>().SetSelectedGameObject(null);
     }
 
     public void OnSecondEnemyBtnClicked()
     {
         SelectedEnemy = 1;
         secondEnemyClicked = true;
+        EventSystem.current.GetComponent<EventSystem>().SetSelectedGameObject(null);
     }
 
     public void OnThirdEnemyBtnClicked()
     {
         SelectedEnemy = 2;
         thirdEnemyClicked = true;
+        EventSystem.current.GetComponent<EventSystem>().SetSelectedGameObject(null);
     }
 
     public void OnFourEnemyBtnClicked()
     {
         SelectedEnemy = 3;
         fourthEnemyClicked = true;
+        EventSystem.current.GetComponent<EventSystem>().SetSelectedGameObject(null);
     }
     public void OnFirstHeroBtnClicked()
     {
         SelectedHero = 0;
         firstHeroClicked = true;
+        EventSystem.current.GetComponent<EventSystem>().SetSelectedGameObject(null);
     }
     public void OnSecondHeroBtnClicked()
     {
         SelectedHero = 1;
         secondHeroClicked = true;
+        EventSystem.current.GetComponent<EventSystem>().SetSelectedGameObject(null);
     }
     public void OnThirdHeroBtnClicked()
     {
         SelectedHero = 2;
         thirdHeroClicked = true;
+        EventSystem.current.GetComponent<EventSystem>().SetSelectedGameObject(null);
     }
     public void OnFourHeroBtnClicked()
     {
         SelectedHero = 3;
         fourthHeroClicked = true;
+        EventSystem.current.GetComponent<EventSystem>().SetSelectedGameObject(null);
     }
     public void OnFirstSkillBtnClicked(Button SelectedButton)
     {
@@ -1384,6 +1514,7 @@ public class BattleManager : MonoBehaviour
         {
             secondBtnClicked = false;
             firstBtnClicked = true;
+            //EventSystem.current.GetComponent<EventSystem>().SetSelectedGameObject(null);
         }
     }
 
@@ -1397,6 +1528,13 @@ public class BattleManager : MonoBehaviour
         {
             firstBtnClicked = false;
             secondBtnClicked = true;
+            if(SpeedOrder.Peek().Item1 < 10)
+            {
+                if(DataManager.Instance.PartyFormation[SpeedOrder.Peek().Item1].heroClass == ClassName.Melee ||
+                    DataManager.Instance.PartyFormation[SpeedOrder.Peek().Item1].heroClass == ClassName.Marksman ||
+                    DataManager.Instance.PartyFormation[SpeedOrder.Peek().Item1].heroClass == ClassName.Tanker)
+                    EventSystem.current.GetComponent<EventSystem>().SetSelectedGameObject(null);
+            }
         }
     }
     #endregion

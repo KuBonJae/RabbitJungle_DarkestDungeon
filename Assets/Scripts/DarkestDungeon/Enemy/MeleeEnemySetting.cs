@@ -6,7 +6,7 @@ public class MeleeEnemySetting : BasicEnemySetting
 {
     public MeleeEnemySetting(int upgrade)
     {
-        MaxHP += 5 * upgrade * 2;
+        MaxHP += 5 + upgrade * 2;
         Hp += 5 + upgrade * 2;
         MinDamage += 1 + upgrade;
         MaxDamage += 1 + upgrade;

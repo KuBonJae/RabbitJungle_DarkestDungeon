@@ -26,7 +26,7 @@ public class SettingJobController : MonoBehaviour
         DataManager.Instance.battleEngageRate = 50;
         DataManager.Instance.itemEngageRate = 50;
 
-        DataManager.Instance.tempStats = new Stat[4] { null, null, null, null }; 
+        DataManager.Instance.tempStats = new Stat[4] { new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0), new Stat(0, 0, 0, 0, 0, 0, 0) };
     }
 
     // Update is called once per frame

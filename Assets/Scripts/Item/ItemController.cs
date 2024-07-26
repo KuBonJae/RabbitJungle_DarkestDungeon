@@ -10,6 +10,7 @@ public class ItemController : MonoBehaviour
     [SerializeField] private GameObject epicCard;
     [SerializeField] private GameObject CardSelectUI;
     [SerializeField] private GameObject NumberSelectUI;
+    [SerializeField] private GameObject OutButton;
     private Button[] cardButtons = new Button[3];
 
     // DD -> 동일 카드 중복 안되도록
@@ -837,5 +838,19 @@ public class ItemController : MonoBehaviour
             card.transform.Find("Effect").GetComponent<TextMeshProUGUI>().text = effect;
         }
         return card;
+    }
+
+    public void OutBtnClicked()
+    {
+        Time.timeScale = 1f;
+
+        // 카드를 파괴
+        foreach (var button in cardButtons)
+        {
+            Destroy(button.gameObject);
+        }
+
+        // 카드 선택 캔버스를 비활성화
+        CardSelectUI.gameObject.SetActive(false);
     }
 }
