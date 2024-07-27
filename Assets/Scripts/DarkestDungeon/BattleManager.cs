@@ -22,9 +22,10 @@ public class BattleManager : MonoBehaviour
     public GameObject SkillIcons;
     public GameObject[] Skills;
     private Button CurSelectedBtn;
+    public GameObject[] Serifu;
 
     private Queue<string> BattleLog = new Queue<string>();
-    private const int MaxLog = 14;
+    private const int MaxLog = 10;
 
     private int EnemyLeft = 4;
     private int HeroLeft = 4;
@@ -58,11 +59,14 @@ public class BattleManager : MonoBehaviour
     Vector3 origin;
     float moveTime = 0f;
 
+    private string[] CorruptionSerifu = new string[4] { "꼴 좋다!", "우린 망했어", "멍청아!", "장난해?" };
+    private string[] CourageSerifu = new string[4] { "힘 내!", "할 수 있어", "도와줄게!", "아직이야!" };
+
     // Start is called before the first frame update
     void Start()
     {
         EnemyLeft = 4;
-        HeroLeft = 4;
+        //HeroLeft = 4;
         SpeedOrder = new PriorityQueue(8);
         firstBtnClicked = false;
         secondBtnClicked = false;
@@ -84,7 +88,18 @@ public class BattleManager : MonoBehaviour
         {
             // 배틀 페이즈를 종료하며, 보상을 획득하고 계속 진행함
             EnemyLeft = 4;
+            TurnCount = 0;
             DataManager.Instance.battle_ing = false; // end the battle phase
+
+            BattleCanvas.transform.Find("Player1").gameObject.SetActive(true); // 혹시 숨겨둔 버튼들을 미리 다 제자리로 돌려두기
+            BattleCanvas.transform.Find("Player2").gameObject.SetActive(true);
+            BattleCanvas.transform.Find("Player3").gameObject.SetActive(true);
+            BattleCanvas.transform.Find("Player4").gameObject.SetActive(true);
+            BattleCanvas.transform.Find("Enemy1").gameObject.SetActive(true);
+            BattleCanvas.transform.Find("Enemy2").gameObject.SetActive(true);
+            BattleCanvas.transform.Find("Enemy3").gameObject.SetActive(true);
+            BattleCanvas.transform.Find("Enemy4").gameObject.SetActive(true);
+
 
             firstBtnClicked = false;
             secondBtnClicked = false;
@@ -220,7 +235,7 @@ public class BattleManager : MonoBehaviour
 
         if (moveObject != null)
         {
-            if(moveTime < 1.5f)
+            if(moveTime < 2f)
             {
                 moveObject.transform.localPosition = Vector3.MoveTowards(moveObject.transform.localPosition, destination, Time.unscaledDeltaTime * 50);
                 moveTime += Time.unscaledDeltaTime;
@@ -229,7 +244,7 @@ public class BattleManager : MonoBehaviour
             {
                 moveObject.transform.localPosition = Vector3.MoveTowards(moveObject.transform.localPosition, origin, Time.unscaledDeltaTime * 50);
                 moveTime += Time.unscaledDeltaTime;
-                if (moveObject.transform.localPosition == origin || moveTime >= 3f)
+                if (moveObject.transform.localPosition == origin || moveTime >= 4f)
                 {
                     moveTime = 0f;
                     moveObject = null;
@@ -290,7 +305,7 @@ public class BattleManager : MonoBehaviour
             destination = new Vector3(-1, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.localPosition.y, 0);
             moveObject = BattleScene.transform.Find("Enemy" + (CurEnemy + 1).ToString()).gameObject;
             origin = moveObject.transform.localPosition;
-            yield return new WaitForSecondsRealtime(1.5f);
+            yield return new WaitForSecondsRealtime(2f);
             // 아군의 회피율을 확인해서 회피 확인
             int HeroDodgeRate = DataManager.Instance.PartyFormation[HeroDmged].heroBasicDodgeRate
                 + (DataManager.Instance.tempStats[HeroDmged] != null ? DataManager.Instance.tempStats[HeroDmged].tempDodge : 0);
@@ -306,7 +321,7 @@ public class BattleManager : MonoBehaviour
                 if (DataManager.Instance.EnemyFormation[CurEnemy].BasicCriticalHit >= randomCritRate)
                 {
                     // 치명타 터짐
-                    ShowBattleLog("치명타!");
+                    ShowBattleLog("<color=\"red\">치명타!</color>");
                     randomDmg *= 2;
                 }
                 if (DataManager.Instance.PartyFormation[HeroDmged].heroHp == 0) // 현재 죽음의 문턱
@@ -318,13 +333,27 @@ public class BattleManager : MonoBehaviour
                     {
                         ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 죽음을 버텨냈습니다. " + randomDeathDoor.ToString() + " / " + randomDeath.ToString());
                         DataManager.Instance.PartyFormation[HeroDmged].heroBasicDeathDoor -= 5; // 영구적으로 죽문 확률 감소
+                        ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 죽음에 대한 공포를 느낍니다. 스트레스 20 증가");
+                        DataManager.Instance.PartyFormation[HeroDmged].heroStress += 20;
+                        yield return StartCoroutine(CheckCorruptionOrCourage(HeroDmged));
                     }
                     else // 버텨내지 못했다
                     {
-                        ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 사망했습니다.");
+                        ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 <color=\"red\">사망</color>했습니다.");
                         DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
+                        HeroLeft--;
+                        BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
                         Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(0).gameObject);
                         Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
+                        ShowBattleLog("모든 Player의 스트레스 증가!");
+                        for(int i=0;i<4;i++)
+                        {
+                            if (!DataManager.Instance.PartyFormation[i].isDead)
+                            {
+                                DataManager.Instance.PartyFormation[i].heroStress += 20;
+                                yield return StartCoroutine(CheckCorruptionOrCourage(i));
+                            }
+                        }
                     }
                 }
                 else // 죽음의 문턱은 아니다
@@ -360,7 +389,7 @@ public class BattleManager : MonoBehaviour
             destination = new Vector3(-1, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.localPosition.y, 0);
             moveObject = BattleScene.transform.Find("Enemy" + (CurEnemy + 1).ToString()).gameObject;
             origin = moveObject.transform.localPosition;
-            yield return new WaitForSecondsRealtime(1.5f);
+            yield return new WaitForSecondsRealtime(2f);
 
             // 아군의 회피율을 확인해서 회피 확인
             int HeroDodgeRate = DataManager.Instance.PartyFormation[HeroDmged].heroBasicDodgeRate
@@ -377,7 +406,7 @@ public class BattleManager : MonoBehaviour
                 if (DataManager.Instance.EnemyFormation[CurEnemy].BasicCriticalHit >= randomCritRate)
                 {
                     // 치명타 터짐
-                    ShowBattleLog("치명타!");
+                    ShowBattleLog("<color=\"red\">치명타!</color>");
                     randomDmg *= 2;
                 }
 
@@ -385,16 +414,77 @@ public class BattleManager : MonoBehaviour
                 {
                     DataManager.Instance.PartyFormation[HeroDmged].heroStress += randomDmg * 2;
                     ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg * 2).ToString() + " 만큼의 스트레스");
+                    // 붕괴 시 팀원에게 확률적으로 추가 스트레스
+                    for (int i = 0; i < 4; i++) 
+                    {
+                        if (DataManager.Instance.PartyFormation[i].Stress == Stress.Negative && !DataManager.Instance.PartyFormation[i].isDead)
+                        {
+                            int randomStress = UnityEngine.Random.Range(0, 100);
+                            if(randomStress < 25) // 25%
+                            {
+                                ShowBattleLog("Player" + (i + 1).ToString() + "의 <color=\"red\">\"부정적\"</color> 효과 발동!");
+                                DataManager.Instance.PartyFormation[HeroDmged].heroStress += randomDmg;
+                                ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg).ToString() + " 만큼의 추가 스트레스");
+                                //yield return new WaitForSecondsRealtime(2f);
+
+                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().color = Color.red;
+                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = CorruptionSerifu[UnityEngine.Random.Range(0, 4)];
+                                Serifu[i].transform.Find("Image").gameObject.SetActive(true);
+
+                                yield return new WaitForSecondsRealtime(2.5f);
+                                Serifu[i].transform.Find("Image").gameObject.SetActive(false);
+                                break;
+                            }
+                        }
+                    }
+                    //
+                    // 각성 시 팀원의 스트레스 피격 절반으로 감소
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (DataManager.Instance.PartyFormation[i].Stress == Stress.Positive && !DataManager.Instance.PartyFormation[i].isDead)
+                        {
+                            int randomStress = UnityEngine.Random.Range(0, 100);
+                            if (randomStress < 30) // 25%
+                            {
+                                ShowBattleLog("Player" + (i + 1).ToString() + "의 \"긍정적\" 효과 발동!");
+                                DataManager.Instance.PartyFormation[HeroDmged].heroStress -= randomDmg;
+                                if (DataManager.Instance.PartyFormation[HeroDmged].heroStress < 0)
+                                    DataManager.Instance.PartyFormation[HeroDmged].heroStress = 0;
+                                ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg).ToString() + " 만큼의 스트레스 회복");
+                                //yield return new WaitForSecondsRealtime(2f);
+
+                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().color = Color.white;
+                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = CourageSerifu[UnityEngine.Random.Range(0, 4)];
+                                Serifu[i].transform.Find("Image").gameObject.SetActive(true);
+
+                                yield return new WaitForSecondsRealtime(2.5f);
+                                Serifu[i].transform.Find("Image").gameObject.SetActive(false);
+                                break;
+                            }
+                        }
+                    }
+                    //
 
                     // 스트레스가 200을 초과 -> 체력을 0으로 만들고 죽음의 문턱
                     if (DataManager.Instance.PartyFormation[HeroDmged].heroStress >= 200)
                     {
                         if (DataManager.Instance.PartyFormation[HeroDmged].heroHp == 0)
                         {
-                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 심장마비로 사망했습니다.");
+                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 <color=\"red\">심장마비</color>로 <color=\"red\">사망</color>했습니다.");
+                            HeroLeft--;
                             DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
+                            BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
                             Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(0).gameObject);
                             Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
+                            ShowBattleLog("모든 Player의 스트레스 증가!");
+                            for (int i = 0; i < 4; i++)
+                            {
+                                if (!DataManager.Instance.PartyFormation[i].isDead)
+                                {
+                                    DataManager.Instance.PartyFormation[i].heroStress += 20;
+                                    yield return StartCoroutine(CheckCorruptionOrCourage(i));
+                                }
+                            }
                         }
                         else
                         {
@@ -408,17 +498,17 @@ public class BattleManager : MonoBehaviour
                     {
                         ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "가 의지를 시험받고 있습니다.");
 
-                        yield return new WaitForSecondsRealtime(2f);
+                        yield return new WaitForSecondsRealtime(3f);
 
                         if (UnityEngine.Random.Range(1, 101) > 25)
                         {
                             DataManager.Instance.PartyFormation[HeroDmged].Stress = Stress.Negative;
-                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + " : 부정적!");
+                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + " : <color=\"red\">부정적!</color>");
                         }
                         else
                         {
                             DataManager.Instance.PartyFormation[HeroDmged].Stress = Stress.Positive;
-                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + " : 긍정적!");
+                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + " : <color=\"yellow\">긍정적!</color>");
                         }
                     }
                 }
@@ -433,13 +523,27 @@ public class BattleManager : MonoBehaviour
                         {
                             ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 죽음을 버텨냈습니다. " + randomDeathDoor.ToString() + " / " + randomDeath.ToString());
                             DataManager.Instance.PartyFormation[HeroDmged].heroBasicDeathDoor -= 5; // 영구적으로 죽문 확률 감소
+                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 죽음에 대한 공포를 느낍니다. 스트레스 20 증가");
+                            DataManager.Instance.PartyFormation[HeroDmged].heroStress += 20;
+                            yield return StartCoroutine(CheckCorruptionOrCourage(HeroDmged));
                         }
                         else // 버텨내지 못했다
                         {
-                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 사망했습니다.");
+                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 <color=\"red\">사망</color>했습니다.");
                             DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
+                            HeroLeft--;
+                            BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
                             Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(0).gameObject);
                             Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
+                            ShowBattleLog("모든 Player의 스트레스 증가!");
+                            for (int i = 0; i < 4; i++)
+                            {
+                                if (!DataManager.Instance.PartyFormation[i].isDead)
+                                {
+                                    DataManager.Instance.PartyFormation[i].heroStress += 20;
+                                    yield return StartCoroutine(CheckCorruptionOrCourage(i));
+                                }
+                            }
                         }
                     }
                     else // 죽음의 문턱은 아니다
@@ -457,15 +561,78 @@ public class BattleManager : MonoBehaviour
 
                     DataManager.Instance.PartyFormation[HeroDmged].heroStress += randomDmg;
                     ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + randomDmg.ToString() + " 만큼의 스트레스");
+
+                    // 붕괴 시 팀원에게 확률적으로 추가 스트레스
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (DataManager.Instance.PartyFormation[i].Stress == Stress.Negative && !DataManager.Instance.PartyFormation[i].isDead)
+                        {
+                            int randomStress = UnityEngine.Random.Range(0, 100);
+                            if (randomStress < 25) // 25%
+                            {
+                                ShowBattleLog("Player" + (i + 1).ToString() + "의 <color=\"red\">\"부정적\"</color> 효과 발동!");
+                                DataManager.Instance.PartyFormation[HeroDmged].heroStress += randomDmg / 2;
+                                ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg / 2).ToString() + " 만큼의 추가 스트레스");
+                                //yield return new WaitForSecondsRealtime(2f);
+
+                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().color = Color.red;
+                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = CorruptionSerifu[UnityEngine.Random.Range(0, 4)];
+                                Serifu[i].transform.Find("Image").gameObject.SetActive(true);
+
+                                yield return new WaitForSecondsRealtime(2.5f);
+                                Serifu[i].transform.Find("Image").gameObject.SetActive(false);
+                                break;
+                            }
+                        }
+                    }
+                    //
+                    // 각성 시 팀원의 스트레스 피격 절반으로 감소
+                    for (int i = 0; i < 4; i++)
+                    {
+                        if (DataManager.Instance.PartyFormation[i].Stress == Stress.Positive && !DataManager.Instance.PartyFormation[i].isDead)
+                        {
+                            int randomStress = UnityEngine.Random.Range(0, 100);
+                            if (randomStress < 40) // 30%
+                            {
+                                ShowBattleLog("Player" + (i + 1).ToString() + "의 <color=\"yellow\">\"긍정적\"</color> 효과 발동!");
+                                DataManager.Instance.PartyFormation[HeroDmged].heroStress -= randomDmg / 2;
+                                if (DataManager.Instance.PartyFormation[HeroDmged].heroStress < 0)
+                                    DataManager.Instance.PartyFormation[HeroDmged].heroStress = 0;
+                                ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg / 2).ToString() + " 만큼의 스트레스 회복");
+                                //yield return new WaitForSecondsRealtime(2f);
+
+                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().color = Color.white;
+                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = CourageSerifu[UnityEngine.Random.Range(0, 4)];
+                                Serifu[i].transform.Find("Image").gameObject.SetActive(true);
+
+                                yield return new WaitForSecondsRealtime(2.5f);
+                                Serifu[i].transform.Find("Image").gameObject.SetActive(false);
+                                break;
+                            }
+                        }
+                    }
+                    //
+
                     // 스트레스가 200을 초과 -> 체력을 0으로 만들고 죽음의 문턱
                     if (DataManager.Instance.PartyFormation[HeroDmged].heroStress >= 200)
                     {
                         if (DataManager.Instance.PartyFormation[HeroDmged].heroHp == 0)
                         {
-                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 심장마비로 사망했습니다.");
+                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 <color=\"red\">심장마비</color>로 <color=\"red\">사망</color>했습니다.");
                             DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
+                            HeroLeft--;
+                            BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
                             Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(0).gameObject);
                             Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
+                            ShowBattleLog("모든 Player의 스트레스 증가!");
+                            for (int i = 0; i < 4; i++)
+                            {
+                                if (!DataManager.Instance.PartyFormation[i].isDead)
+                                {
+                                    DataManager.Instance.PartyFormation[i].heroStress += 20;
+                                    yield return StartCoroutine(CheckCorruptionOrCourage(i));
+                                }
+                            }
                         }
                         else
                         {
@@ -479,17 +646,17 @@ public class BattleManager : MonoBehaviour
                     {
                         ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "가 의지를 시험받고 있습니다.");
 
-                        yield return new WaitForSecondsRealtime(2f);
+                        yield return new WaitForSecondsRealtime(3f);
 
                         if (UnityEngine.Random.Range(1, 101) > 25)
                         {
                             DataManager.Instance.PartyFormation[HeroDmged].Stress = Stress.Negative;
-                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + " : 부정적!");
+                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + " : <color=\"red\">부정적!</color>");
                         }
                         else
                         {
                             DataManager.Instance.PartyFormation[HeroDmged].Stress = Stress.Positive;
-                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + " : 긍정적!");
+                            ShowBattleLog("Player" + (HeroDmged + 1).ToString() + " : <color=\"yellow\">긍정적!</color>");
                         }
 
                     }
@@ -498,7 +665,7 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        yield return new WaitForSecondsRealtime(2f);
+        yield return new WaitForSecondsRealtime(3f);
         SpeedOrder.Dequeue();
         nextBattleOrder = true;
     }
@@ -743,6 +910,23 @@ public class BattleManager : MonoBehaviour
                 {
                     if (firstEnemyClicked || secondEnemyClicked || thirdEnemyClicked || fourthEnemyClicked) // 대상을 선택했는지 확인
                     {
+                        if (DataManager.Instance.PartyFormation[CurHero].Stress == Stress.Negative && !DataManager.Instance.PartyFormation[CurHero].isDead)
+                        {
+                            if (UnityEngine.Random.Range(0, 100) < 10) // 10%
+                            {
+                                ShowBattleLog("Player" + (CurHero + 1).ToString() + "의 <color=\"red\">\"부정적\"</color> 효과 발동!");
+                                ShowBattleLog("Player" + (CurHero + 1).ToString() + "의 턴이 넘어갑니다!");
+                                Serifu[CurHero].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().color = Color.red;
+                                Serifu[CurHero].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = "안해 안해~";
+                                Serifu[CurHero].transform.Find("Image").gameObject.SetActive(true);
+
+                                yield return new WaitForSecondsRealtime(2f);
+                                Serifu[CurHero].transform.Find("Image").gameObject.SetActive(false);;
+
+                                break;
+                            }
+                        }
+
                         if (firstEnemyClicked)
                             SelectedEnemy = 0;
                         else if (secondEnemyClicked)
@@ -757,7 +941,7 @@ public class BattleManager : MonoBehaviour
                         destination = new Vector3(1, BattleScene.transform.Find("Enemy" + (SelectedEnemy + 1).ToString()).transform.localPosition.y, 0);
                         moveObject = BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).gameObject;
                         origin = moveObject.transform.localPosition;
-                        yield return new WaitForSecondsRealtime(1.5f);
+                        yield return new WaitForSecondsRealtime(2f);
 
                         int dodgeRate = DataManager.Instance.EnemyFormation[SelectedEnemy].BasicDodgeRate; // 해당 적의 회피율 가져오기
                         int hitRate = DataManager.Instance.PartyFormation[CurHero].heroBasicAccuracy; // 아군의 명중률 가져오기
@@ -781,23 +965,41 @@ public class BattleManager : MonoBehaviour
                             randomHit = UnityEngine.Random.Range(0, 101);
                             if (critRate >= randomHit) // 크리 확률보다 아래 값, 즉 포함되는 값이 나온다면 크리티컬
                             {
-                                ShowBattleLog("치명타!");
+                                ShowBattleLog("<color=\"red\">치명타!</color>");
                                 dealingDmg *= 2; // 2배의 데미지 적용
                             }
 
                             // 해당되는 적의 체력 감소
                             DataManager.Instance.EnemyFormation[SelectedEnemy].Hp -= dealingDmg;
+                            ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "에게 " + dealingDmg.ToString() + "만큼의 데미지");
+
+                            #region 영웅의 각성 시 효과 발동
+                            for (int i=0;i<4;i++)
+                            {
+                                if(i != CurHero && DataManager.Instance.PartyFormation[i].Stress == Stress.Positive) // 공격자 제외 다른 이가 긍정적 효과일 때
+                                {
+                                    if(UnityEngine.Random.Range(0, 100) < 40) // 20%
+                                    {
+                                        ShowBattleLog("Player" + (i + 1).ToString() + "의 <color=\"yellow\">\"긍정적\"</color> 효과 발동!");
+                                        ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "에게 " + (dealingDmg / 2).ToString() + "만큼의 추가 데미지");
+                                        DataManager.Instance.EnemyFormation[SelectedEnemy].Hp -= dealingDmg / 2;
+                                        break; // 한번만 적용
+                                    }
+                                }
+                            }
+                            #endregion
                             if (DataManager.Instance.EnemyFormation[SelectedEnemy].Hp <= 0) // 적이 죽었는지 체크
                             {
                                 DataManager.Instance.EnemyFormation[SelectedEnemy].isDead = true;
                                 Destroy(BattleScene.transform.Find("Enemy" + (SelectedEnemy + 1).ToString()).transform.GetChild(0).gameObject);
                                 Instantiate(Tomb, BattleScene.transform.Find("Enemy" + (SelectedEnemy + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0); // 적 프리팹 묘비로 교체
-                                ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "이 공격에 의해 사망했습니다.");
+                                ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "이 공격에 의해 <color=\"red\">사망</color>했습니다.");
+                                BattleCanvas.transform.Find("Enemy" + (SelectedEnemy + 1).ToString()).gameObject.SetActive(false);
                                 EnemyLeft--; // 적 수 감소
                             }
                             else // 죽지 않았다면 로그만 출력
                             {
-                                ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "에게 " + dealingDmg.ToString() + "만큼의 데미지");
+                                //ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "에게 " + dealingDmg.ToString() + "만큼의 데미지");
                             }
                             // 턴 넘김
                             break;
@@ -822,7 +1024,7 @@ public class BattleManager : MonoBehaviour
                         destination = new Vector3(1, -1.5f, 0);
                         moveObject = BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).gameObject;
                         origin = moveObject.transform.localPosition;
-                        yield return new WaitForSecondsRealtime(1.5f);
+                        yield return new WaitForSecondsRealtime(2f);
 
                         for (int i = 0; i < 2; i++)
                         {
@@ -859,23 +1061,41 @@ public class BattleManager : MonoBehaviour
                                 randomHit = UnityEngine.Random.Range(0, 101);
                                 if (critRate >= randomHit) // 크리 확률보다 아래 값, 즉 포함되는 값이 나온다면 크리티컬
                                 {
-                                    ShowBattleLog("치명타!");
+                                    ShowBattleLog("<color=\"red\">치명타!</color>");
                                     dealingDmg *= 2; // 2배의 데미지 적용
                                 }
 
                                 // 해당되는 적의 체력 감소
                                 DataManager.Instance.EnemyFormation[i].Hp -= dealingDmg;
+                                ShowBattleLog("Enemy" + (i + 1).ToString() + "에게 " + dealingDmg.ToString() + "만큼의 데미지");
+                                #region 영웅의 각성 시 효과 발동
+                                for (int j = 0; j < 4; j++)
+                                {
+                                    if (j != CurHero && DataManager.Instance.PartyFormation[j].Stress == Stress.Positive) // 공격자 제외 다른 이가 긍정적 효과일 때
+                                    {
+                                        if (UnityEngine.Random.Range(0, 100) < 40) // 20%
+                                        {
+                                            ShowBattleLog("Player" + (j + 1).ToString() + "의 <color=\"yellow\">\"긍정적\"</color> 효과 발동!");
+                                            ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "에게 " + (dealingDmg / 2).ToString() + "만큼의 추가 데미지");
+                                            DataManager.Instance.EnemyFormation[i].Hp -= dealingDmg / 2;
+                                            break; // 한번만 적용
+                                        }
+                                    }
+                                }
+                                #endregion
+
                                 if (DataManager.Instance.EnemyFormation[i].Hp <= 0) // 적이 죽었는지 체크
                                 {
                                     DataManager.Instance.EnemyFormation[i].isDead = true;
                                     Destroy(BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform.GetChild(0).gameObject);
                                     Instantiate(Tomb, BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0); // 적 프리팹 묘비로 교체
-                                    ShowBattleLog("Enemy" + (i + 1).ToString() + "이 공격에 의해 사망했습니다.");
+                                    ShowBattleLog("Enemy" + (i + 1).ToString() + "이 공격에 의해 <color=\"red\">사망</color>했습니다.");
+                                    BattleCanvas.transform.Find("Enemy" + (i + 1).ToString()).gameObject.SetActive(false);
                                     EnemyLeft--; // 적 수 감소
                                 }
                                 else // 죽지 않았다면 로그만 출력
                                 {
-                                    ShowBattleLog("Enemy" + (i + 1).ToString() + "에게 " + dealingDmg.ToString() + "만큼의 데미지");
+                                    //ShowBattleLog("Enemy" + (i + 1).ToString() + "에게 " + dealingDmg.ToString() + "만큼의 데미지");
                                 }
                                 // 턴 넘김
                             }
@@ -892,10 +1112,10 @@ public class BattleManager : MonoBehaviour
                     {
                         ShowBattleLog("Player" + (CurHero + 1).ToString() + " : " + DataManager.Instance.PartyFormation[CurHero].heroClass.ToString() + " 의 공격!");
                         SkillIcons.SetActive(false);
-                        destination = new Vector3(1, 1.5f, 0);
+                        destination = new Vector3(1, 4.5f, 0);
                         moveObject = BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).gameObject;
                         origin = moveObject.transform.localPosition;
-                        yield return new WaitForSecondsRealtime(1.5f);
+                        yield return new WaitForSecondsRealtime(2f);
 
                         for (int i = 2; i < 4; i++)
                         {
@@ -932,23 +1152,42 @@ public class BattleManager : MonoBehaviour
                                 randomHit = UnityEngine.Random.Range(0, 101);
                                 if (critRate >= randomHit) // 크리 확률보다 아래 값, 즉 포함되는 값이 나온다면 크리티컬
                                 {
-                                    ShowBattleLog("치명타!");
+                                    ShowBattleLog("<color=\"red\">치명타!</color>");
                                     dealingDmg *= 2; // 2배의 데미지 적용
                                 }
 
                                 // 해당되는 적의 체력 감소
                                 DataManager.Instance.EnemyFormation[i].Hp -= dealingDmg;
+
+                                ShowBattleLog("Enemy" + (i + 1).ToString() + "에게 " + dealingDmg.ToString() + "만큼의 데미지");
+                                #region 영웅의 각성 시 효과 발동
+                                for (int j = 0; j < 4; j++)
+                                {
+                                    if (j != CurHero && DataManager.Instance.PartyFormation[j].Stress == Stress.Positive) // 공격자 제외 다른 이가 긍정적 효과일 때
+                                    {
+                                        if (UnityEngine.Random.Range(0, 100) < 40) // 20%
+                                        {
+                                            ShowBattleLog("Player" + (j + 1).ToString() + "의 <color=\"yellow\">\"긍정적\"</color> 효과 발동!");
+                                            ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "에게 " + (dealingDmg / 2).ToString() + "만큼의 추가 데미지");
+                                            DataManager.Instance.EnemyFormation[i].Hp -= dealingDmg / 2;
+                                            break; // 한번만 적용
+                                        }
+                                    }
+                                }
+                                #endregion
+
                                 if (DataManager.Instance.EnemyFormation[i].Hp <= 0) // 적이 죽었는지 체크
                                 {
                                     DataManager.Instance.EnemyFormation[i].isDead = true;
                                     Destroy(BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform.GetChild(0).gameObject);
                                     Instantiate(Tomb, BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0); // 적 프리팹 묘비로 교체
-                                    ShowBattleLog("Enemy" + (i + 1).ToString() + "이 공격에 의해 사망했습니다.");
+                                    ShowBattleLog("Enemy" + (i + 1).ToString() + "이 공격에 의해 <color=\"red\">사망</color>했습니다.");
+                                    BattleCanvas.transform.Find("Enemy" + (i + 1).ToString()).gameObject.SetActive(false);
                                     EnemyLeft--; // 적 수 감소
                                 }
                                 else // 죽지 않았다면 로그만 출력
                                 {
-                                    ShowBattleLog("Enemy" + (i + 1).ToString() + "에게 " + dealingDmg.ToString() + "만큼의 데미지");
+                                    //ShowBattleLog("Enemy" + (i + 1).ToString() + "에게 " + dealingDmg.ToString() + "만큼의 데미지");
                                 }
                                 // 턴 넘김
                             }
@@ -975,159 +1214,351 @@ public class BattleManager : MonoBehaviour
                     }
                     else if (DataManager.Instance.PartyFormation[CurHero].heroClass == ClassName.Healer)
                     {
-                        if (firstHeroClicked)
+                        if(firstHeroClicked || secondHeroClicked || thirdHeroClicked || fourthHeroClicked)
                         {
-                            if (DataManager.Instance.PartyFormation[0].isDead)
+                            for(int i=0;i<4;i++)
                             {
-                                firstHeroClicked = false;
-                                continue;
+                                if (!DataManager.Instance.PartyFormation[i].isDead)
+                                {
+                                    if (DataManager.Instance.PartyFormation[i].Stress == Stress.Negative && !DataManager.Instance.PartyFormation[i].isDead)
+                                    {
+                                        bool sameHero = false;
+                                        if(UnityEngine.Random.Range(0, 100) < 10) // 10%
+                                        {
+                                            switch (i)
+                                            {
+                                                case 0:
+                                                    if(firstHeroClicked)
+                                                    {
+                                                        sameHero = true;
+                                                        firstHeroClicked = false;
+                                                    }
+                                                    else
+                                                    {
+                                                        firstHeroClicked = secondHeroClicked = thirdHeroClicked = fourthHeroClicked = false;
+                                                        firstHeroClicked = true;
+                                                    }
+                                                    break;
+                                                case 1:
+                                                    if(secondHeroClicked)
+                                                    {
+                                                        sameHero = true;
+                                                        secondHeroClicked = false;
+                                                    }
+                                                    else
+                                                    {
+                                                        firstHeroClicked = secondHeroClicked = thirdHeroClicked = fourthHeroClicked = false;
+                                                        secondHeroClicked = true;
+                                                    }
+                                                    break;
+                                                case 2:
+                                                    if (thirdHeroClicked)
+                                                    {
+                                                        sameHero = true;
+                                                        thirdHeroClicked = false;
+                                                    }
+                                                    else
+                                                    {
+                                                        firstHeroClicked = secondHeroClicked = thirdHeroClicked = fourthHeroClicked = false;
+                                                        thirdHeroClicked = true;
+                                                    }
+                                                    break;
+                                                case 3:
+                                                    if (fourthHeroClicked)
+                                                    {
+                                                        sameHero = true;
+                                                        fourthHeroClicked = false;
+                                                    }
+                                                    else
+                                                    {
+                                                        firstHeroClicked = secondHeroClicked = thirdHeroClicked = fourthHeroClicked = false;
+                                                        fourthHeroClicked = true;
+                                                    }
+                                                    break;
+                                            }
+
+                                            if(sameHero)
+                                            {
+                                                ShowBattleLog("Player" + (i + 1).ToString() + "의 <color=\"red\">\"부정적\"</color> 효과 발동!");
+                                                ShowBattleLog("Player" + (i + 1).ToString() + "(이)가 회복을 거부합니다!");
+                                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().color = Color.red;
+                                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = "필요 없어!";
+                                                Serifu[i].transform.Find("Image").gameObject.SetActive(true);
+
+                                                yield return new WaitForSecondsRealtime(2f);
+                                                Serifu[i].transform.Find("Image").gameObject.SetActive(false);
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                ShowBattleLog("Player" + (i + 1).ToString() + "의 <color=\"red\">\"부정적\"</color> 효과 발동!");
+                                                ShowBattleLog("Player" + (i + 1).ToString() + "(이)가 회복을 가로챕니다!");
+                                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().color = Color.red;
+                                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = "그건 내꺼야!";
+                                                Serifu[i].transform.Find("Image").gameObject.SetActive(true);
+
+                                                yield return new WaitForSecondsRealtime(2f);
+                                                Serifu[i].transform.Find("Image").gameObject.SetActive(false);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                            int randomHeal = UnityEngine.Random.Range(((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).minHealAmount,
-                                ((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).maxHealAmount + 1);
-                            DataManager.Instance.PartyFormation[0].heroHp += randomHeal;
-                            if (DataManager.Instance.PartyFormation[0].heroHp > DataManager.Instance.PartyFormation[0].heroMaxHP)
-                                DataManager.Instance.PartyFormation[0].heroHp = DataManager.Instance.PartyFormation[0].heroMaxHP;
-                            SkillIcons.SetActive(false);
-                            ShowBattleLog("Player1이 " + randomHeal.ToString() + "만큼의 체력 회복");
-                            break;
-                        }
-                        else if (secondHeroClicked)
-                        {
-                            if (DataManager.Instance.PartyFormation[1].isDead)
+
+                            if (firstHeroClicked)
                             {
-                                secondHeroClicked = false;
-                                continue;
+                                if (DataManager.Instance.PartyFormation[0].isDead)
+                                {
+                                    firstHeroClicked = false;
+                                    continue;
+                                }
+                                int randomHeal = UnityEngine.Random.Range(((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).minHealAmount,
+                                    ((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).maxHealAmount + 1);
+                                DataManager.Instance.PartyFormation[0].heroHp += randomHeal;
+                                if (DataManager.Instance.PartyFormation[0].heroHp > DataManager.Instance.PartyFormation[0].heroMaxHP)
+                                    DataManager.Instance.PartyFormation[0].heroHp = DataManager.Instance.PartyFormation[0].heroMaxHP;
+                                SkillIcons.SetActive(false);
+                                ShowBattleLog("Player1이 " + randomHeal.ToString() + "만큼의 체력 회복");
+                                break;
                             }
-                            int randomHeal = UnityEngine.Random.Range(((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).minHealAmount,
-                                ((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).maxHealAmount + 1);
-                            DataManager.Instance.PartyFormation[1].heroHp += randomHeal;
-                            if (DataManager.Instance.PartyFormation[1].heroHp > DataManager.Instance.PartyFormation[1].heroMaxHP)
-                                DataManager.Instance.PartyFormation[1].heroHp = DataManager.Instance.PartyFormation[1].heroMaxHP;
-                            ShowBattleLog("Player2이 " + randomHeal.ToString() + "만큼의 체력 회복");
-                            SkillIcons.SetActive(false);
-                            break;
-                        }
-                        else if (thirdHeroClicked)
-                        {
-                            if (DataManager.Instance.PartyFormation[2].isDead)
+                            else if (secondHeroClicked)
                             {
-                                thirdHeroClicked = false;
-                                continue;
+                                if (DataManager.Instance.PartyFormation[1].isDead)
+                                {
+                                    secondHeroClicked = false;
+                                    continue;
+                                }
+                                int randomHeal = UnityEngine.Random.Range(((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).minHealAmount,
+                                    ((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).maxHealAmount + 1);
+                                DataManager.Instance.PartyFormation[1].heroHp += randomHeal;
+                                if (DataManager.Instance.PartyFormation[1].heroHp > DataManager.Instance.PartyFormation[1].heroMaxHP)
+                                    DataManager.Instance.PartyFormation[1].heroHp = DataManager.Instance.PartyFormation[1].heroMaxHP;
+                                ShowBattleLog("Player2이 " + randomHeal.ToString() + "만큼의 체력 회복");
+                                SkillIcons.SetActive(false);
+                                break;
                             }
-                            int randomHeal = UnityEngine.Random.Range(((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).minHealAmount,
-                                ((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).maxHealAmount + 1);
-                            DataManager.Instance.PartyFormation[2].heroHp += randomHeal;
-                            if (DataManager.Instance.PartyFormation[2].heroHp > DataManager.Instance.PartyFormation[2].heroMaxHP)
-                                DataManager.Instance.PartyFormation[2].heroHp = DataManager.Instance.PartyFormation[2].heroMaxHP;
-                            ShowBattleLog("Player3이 " + randomHeal.ToString() + "만큼의 체력 회복");
-                            SkillIcons.SetActive(false);
-                            break;
-                        }
-                        else if (fourthHeroClicked)
-                        {
-                            if (DataManager.Instance.PartyFormation[3].isDead)
+                            else if (thirdHeroClicked)
                             {
-                                fourthHeroClicked = false;
-                                continue;
+                                if (DataManager.Instance.PartyFormation[2].isDead)
+                                {
+                                    thirdHeroClicked = false;
+                                    continue;
+                                }
+                                int randomHeal = UnityEngine.Random.Range(((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).minHealAmount,
+                                    ((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).maxHealAmount + 1);
+                                DataManager.Instance.PartyFormation[2].heroHp += randomHeal;
+                                if (DataManager.Instance.PartyFormation[2].heroHp > DataManager.Instance.PartyFormation[2].heroMaxHP)
+                                    DataManager.Instance.PartyFormation[2].heroHp = DataManager.Instance.PartyFormation[2].heroMaxHP;
+                                ShowBattleLog("Player3이 " + randomHeal.ToString() + "만큼의 체력 회복");
+                                SkillIcons.SetActive(false);
+                                break;
                             }
-                            int randomHeal = UnityEngine.Random.Range(((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).minHealAmount,
-                                ((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).maxHealAmount + 1);
-                            DataManager.Instance.PartyFormation[3].heroHp += randomHeal;
-                            if (DataManager.Instance.PartyFormation[3].heroHp > DataManager.Instance.PartyFormation[3].heroMaxHP)
-                                DataManager.Instance.PartyFormation[3].heroHp = DataManager.Instance.PartyFormation[3].heroMaxHP;
-                            ShowBattleLog("Player4이 " + randomHeal.ToString() + "만큼의 체력 회복");
-                            SkillIcons.SetActive(false);
-                            break;
+                            else if (fourthHeroClicked)
+                            {
+                                if (DataManager.Instance.PartyFormation[3].isDead)
+                                {
+                                    fourthHeroClicked = false;
+                                    continue;
+                                }
+                                int randomHeal = UnityEngine.Random.Range(((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).minHealAmount,
+                                    ((HealerSetting)(DataManager.Instance.PartyFormation[CurHero])).maxHealAmount + 1);
+                                DataManager.Instance.PartyFormation[3].heroHp += randomHeal;
+                                if (DataManager.Instance.PartyFormation[3].heroHp > DataManager.Instance.PartyFormation[3].heroMaxHP)
+                                    DataManager.Instance.PartyFormation[3].heroHp = DataManager.Instance.PartyFormation[3].heroMaxHP;
+                                ShowBattleLog("Player4이 " + randomHeal.ToString() + "만큼의 체력 회복");
+                                SkillIcons.SetActive(false);
+                                break;
+                            }
+                            else
+                                break;
                         }
                         else
                             continue;
                     }
                     else if (DataManager.Instance.PartyFormation[CurHero].heroClass == ClassName.Supporter)
                     {
-                        if (firstHeroClicked)
+                        if (firstHeroClicked || secondHeroClicked || thirdHeroClicked || fourthHeroClicked)
                         {
-                            if (DataManager.Instance.PartyFormation[0].isDead)
+                            for (int i = 0; i < 4; i++)
                             {
-                                firstHeroClicked = false;
-                                continue;
+                                if (!DataManager.Instance.PartyFormation[i].isDead)
+                                {
+                                    if (DataManager.Instance.PartyFormation[i].Stress == Stress.Negative && !DataManager.Instance.PartyFormation[i].isDead)
+                                    {
+                                        bool sameHero = false;
+                                        if (UnityEngine.Random.Range(0, 100) < 10) // 10%
+                                        {
+                                            switch (i)
+                                            {
+                                                case 0:
+                                                    if (firstHeroClicked)
+                                                    {
+                                                        sameHero = true;
+                                                        firstHeroClicked = false;
+                                                    }
+                                                    else
+                                                    {
+                                                        firstHeroClicked = secondHeroClicked = thirdHeroClicked = fourthHeroClicked = false;
+                                                        firstHeroClicked = true;
+                                                    }
+                                                    break;
+                                                case 1:
+                                                    if (secondHeroClicked)
+                                                    {
+                                                        sameHero = true;
+                                                        secondHeroClicked = false;
+                                                    }
+                                                    else
+                                                    {
+                                                        firstHeroClicked = secondHeroClicked = thirdHeroClicked = fourthHeroClicked = false;
+                                                        secondHeroClicked = true;
+                                                    }
+                                                    break;
+                                                case 2:
+                                                    if (thirdHeroClicked)
+                                                    {
+                                                        sameHero = true;
+                                                        thirdHeroClicked = false;
+                                                    }
+                                                    else
+                                                    {
+                                                        firstHeroClicked = secondHeroClicked = thirdHeroClicked = fourthHeroClicked = false;
+                                                        thirdHeroClicked = true;
+                                                    }
+                                                    break;
+                                                case 3:
+                                                    if (fourthHeroClicked)
+                                                    {
+                                                        sameHero = true;
+                                                        fourthHeroClicked = false;
+                                                    }
+                                                    else
+                                                    {
+                                                        firstHeroClicked = secondHeroClicked = thirdHeroClicked = fourthHeroClicked = false;
+                                                        fourthHeroClicked = true;
+                                                    }
+                                                    break;
+                                            }
+
+                                            if (sameHero)
+                                            {
+                                                ShowBattleLog("Player" + (i + 1).ToString() + "의 <color=\"red\">\"부정적\"</color> 효과 발동!");
+                                                ShowBattleLog("Player" + (i + 1).ToString() + "(이)가 회복을 거부합니다!");
+                                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().color = Color.red;
+                                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = "필요 없어!";
+                                                Serifu[i].transform.Find("Image").gameObject.SetActive(true);
+
+                                                yield return new WaitForSecondsRealtime(2f);
+                                                Serifu[i].transform.Find("Image").gameObject.SetActive(false);
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                ShowBattleLog("Player" + (i + 1).ToString() + "의 <color=\"red\">\"부정적\"</color> 효과 발동!");
+                                                ShowBattleLog("Player" + (i + 1).ToString() + "(이)가 회복을 가로챕니다!");
+                                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().color = Color.red;
+                                                Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = "그건 내꺼야!";
+                                                Serifu[i].transform.Find("Image").gameObject.SetActive(true);
+
+                                                yield return new WaitForSecondsRealtime(2f);
+                                                Serifu[i].transform.Find("Image").gameObject.SetActive(false);
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                            int randomHeal = UnityEngine.Random.Range(((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).minStressDownAmount,
-                                ((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).maxStressDownAmount + 1);
-                            DataManager.Instance.PartyFormation[0].heroStress -= randomHeal;
-                            if (DataManager.Instance.PartyFormation[0].heroStress <= 0)
+
+                            if (firstHeroClicked)
                             {
-                                DataManager.Instance.PartyFormation[0].heroStress = 0;
-                                // 만약 붕괴상태면 기본 상태로 되돌림
-                                if (DataManager.Instance.PartyFormation[0].Stress == Stress.Negative)
-                                    DataManager.Instance.PartyFormation[0].Stress = Stress.Default;
+                                if (DataManager.Instance.PartyFormation[0].isDead)
+                                {
+                                    firstHeroClicked = false;
+                                    continue;
+                                }
+                                int randomHeal = UnityEngine.Random.Range(((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).minStressDownAmount,
+                                    ((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).maxStressDownAmount + 1);
+                                DataManager.Instance.PartyFormation[0].heroStress -= randomHeal;
+                                if (DataManager.Instance.PartyFormation[0].heroStress <= 0)
+                                {
+                                    DataManager.Instance.PartyFormation[0].heroStress = 0;
+                                    // 만약 붕괴상태면 기본 상태로 되돌림
+                                    if (DataManager.Instance.PartyFormation[0].Stress == Stress.Negative)
+                                        DataManager.Instance.PartyFormation[0].Stress = Stress.Default;
+                                }
+                                ShowBattleLog("Player1이 " + randomHeal.ToString() + "만큼의 스트레스 회복");
+                                SkillIcons.SetActive(false);
+                                break;
                             }
-                            ShowBattleLog("Player1이 " + randomHeal.ToString() + "만큼의 스트레스 회복");
-                            SkillIcons.SetActive(false);
-                            break;
+                            else if (secondHeroClicked)
+                            {
+                                if (DataManager.Instance.PartyFormation[1].isDead)
+                                {
+                                    secondHeroClicked = false;
+                                    continue;
+                                }
+                                int randomHeal = UnityEngine.Random.Range(((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).minStressDownAmount,
+                                    ((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).maxStressDownAmount + 1);
+                                DataManager.Instance.PartyFormation[1].heroStress -= randomHeal;
+                                if (DataManager.Instance.PartyFormation[1].heroStress <= 0)
+                                {
+                                    DataManager.Instance.PartyFormation[1].heroStress = 0;
+                                    // 만약 붕괴상태면 기본 상태로 되돌림
+                                    if (DataManager.Instance.PartyFormation[1].Stress == Stress.Negative)
+                                        DataManager.Instance.PartyFormation[1].Stress = Stress.Default;
+                                }
+                                ShowBattleLog("Player2이 " + randomHeal.ToString() + "만큼의 스트레스 회복");
+                                SkillIcons.SetActive(false);
+                                break;
+                            }
+                            else if (thirdHeroClicked)
+                            {
+                                if (DataManager.Instance.PartyFormation[2].isDead)
+                                {
+                                    thirdHeroClicked = false;
+                                    continue;
+                                }
+                                int randomHeal = UnityEngine.Random.Range(((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).minStressDownAmount,
+                                    ((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).maxStressDownAmount + 1);
+                                DataManager.Instance.PartyFormation[2].heroStress -= randomHeal;
+                                if (DataManager.Instance.PartyFormation[2].heroStress <= 0)
+                                {
+                                    DataManager.Instance.PartyFormation[2].heroStress = 0;
+                                    // 만약 붕괴상태면 기본 상태로 되돌림
+                                    if (DataManager.Instance.PartyFormation[2].Stress == Stress.Negative)
+                                        DataManager.Instance.PartyFormation[2].Stress = Stress.Default;
+                                }
+                                ShowBattleLog("Player3이 " + randomHeal.ToString() + "만큼의 스트레스 회복");
+                                SkillIcons.SetActive(false);
+                                break;
+                            }
+                            else if (fourthHeroClicked)
+                            {
+                                if (DataManager.Instance.PartyFormation[3].isDead)
+                                {
+                                    fourthHeroClicked = false;
+                                    continue;
+                                }
+                                int randomHeal = UnityEngine.Random.Range(((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).minStressDownAmount,
+                                    ((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).maxStressDownAmount + 1);
+                                DataManager.Instance.PartyFormation[3].heroStress -= randomHeal;
+                                if (DataManager.Instance.PartyFormation[3].heroStress <= 0)
+                                {
+                                    DataManager.Instance.PartyFormation[3].heroStress = 0;
+                                    // 만약 붕괴상태면 기본 상태로 되돌림
+                                    if (DataManager.Instance.PartyFormation[3].Stress == Stress.Negative)
+                                        DataManager.Instance.PartyFormation[3].Stress = Stress.Default;
+                                }
+                                ShowBattleLog("Player4이 " + randomHeal.ToString() + "만큼의 스트레스 회복");
+                                SkillIcons.SetActive(false);
+                                break;
+                            }
+                            else
+                                break;
                         }
-                        else if (secondHeroClicked)
-                        {
-                            if (DataManager.Instance.PartyFormation[1].isDead)
-                            {
-                                secondHeroClicked = false;
-                                continue;
-                            }
-                            int randomHeal = UnityEngine.Random.Range(((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).minStressDownAmount,
-                                ((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).maxStressDownAmount + 1);
-                            DataManager.Instance.PartyFormation[1].heroStress -= randomHeal;
-                            if (DataManager.Instance.PartyFormation[1].heroStress <= 0)
-                            {
-                                DataManager.Instance.PartyFormation[1].heroStress = 0;
-                                // 만약 붕괴상태면 기본 상태로 되돌림
-                                if (DataManager.Instance.PartyFormation[1].Stress == Stress.Negative)
-                                    DataManager.Instance.PartyFormation[1].Stress = Stress.Default;
-                            }
-                            ShowBattleLog("Player2이 " + randomHeal.ToString() + "만큼의 스트레스 회복");
-                            SkillIcons.SetActive(false);
-                            break;
-                        }
-                        else if (thirdHeroClicked)
-                        {
-                            if (DataManager.Instance.PartyFormation[2].isDead)
-                            {
-                                thirdHeroClicked = false;
-                                continue;
-                            }
-                            int randomHeal = UnityEngine.Random.Range(((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).minStressDownAmount,
-                                ((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).maxStressDownAmount + 1);
-                            DataManager.Instance.PartyFormation[2].heroStress -= randomHeal;
-                            if (DataManager.Instance.PartyFormation[2].heroStress <= 0)
-                            {
-                                DataManager.Instance.PartyFormation[2].heroStress = 0;
-                                // 만약 붕괴상태면 기본 상태로 되돌림
-                                if (DataManager.Instance.PartyFormation[2].Stress == Stress.Negative)
-                                    DataManager.Instance.PartyFormation[2].Stress = Stress.Default;
-                            }
-                            ShowBattleLog("Player3이 " + randomHeal.ToString() + "만큼의 스트레스 회복");
-                            SkillIcons.SetActive(false);
-                            break;
-                        }
-                        else if (fourthHeroClicked)
-                        {
-                            if (DataManager.Instance.PartyFormation[3].isDead)
-                            {
-                                fourthHeroClicked = false;
-                                continue;
-                            }
-                            int randomHeal = UnityEngine.Random.Range(((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).minStressDownAmount,
-                                ((SupporterSetting)(DataManager.Instance.PartyFormation[CurHero])).maxStressDownAmount + 1);
-                            DataManager.Instance.PartyFormation[3].heroStress += randomHeal;
-                            if (DataManager.Instance.PartyFormation[3].heroStress <= 0)
-                            {
-                                DataManager.Instance.PartyFormation[3].heroStress = 0;
-                                // 만약 붕괴상태면 기본 상태로 되돌림
-                                if (DataManager.Instance.PartyFormation[3].Stress == Stress.Negative)
-                                    DataManager.Instance.PartyFormation[3].Stress = Stress.Default;
-                            }
-                            ShowBattleLog("Player4이 " + randomHeal.ToString() + "만큼의 스트레스 회복");
-                            SkillIcons.SetActive(false);
-                            break;
-                        }
+                        else
+                            continue;
                     }
                 }
                 else
@@ -1145,7 +1576,7 @@ public class BattleManager : MonoBehaviour
         BattleCanvas.SetActive(true);
         BattleCanvas.transform.Find("BattleLog").GetComponent<TextMeshProUGUI>().text = "";
         BattleStart();
-        yield return new WaitForSecondsRealtime(1f);
+        yield return new WaitForSecondsRealtime(1.5f);
         Time.timeScale = 0f;
         battleStart = true;
         StartCoroutine("SetNextBattleOrder");
@@ -1210,6 +1641,7 @@ public class BattleManager : MonoBehaviour
         {
             Hero = Instantiate(Tomb, GameObject.Find("BattleScene").transform.Find("Player1"));
             Hero.transform.localPosition = new Vector3(0, 0, 0);
+            BattleCanvas.transform.Find("Player1").gameObject.SetActive(false);
         }
         else
         {
@@ -1242,6 +1674,7 @@ public class BattleManager : MonoBehaviour
         {
             Hero = Instantiate(Tomb, GameObject.Find("BattleScene").transform.Find("Player2"));
             Hero.transform.localPosition = new Vector3(0, 0, 0);
+            BattleCanvas.transform.Find("Player2").gameObject.SetActive(false);
         }
         else
         {
@@ -1274,6 +1707,7 @@ public class BattleManager : MonoBehaviour
         {
             Hero = Instantiate(Tomb, GameObject.Find("BattleScene").transform.Find("Player3"));
             Hero.transform.localPosition = new Vector3(0, 0, 0);
+            BattleCanvas.transform.Find("Player3").gameObject.SetActive(false);
         }
         else
         {
@@ -1306,6 +1740,7 @@ public class BattleManager : MonoBehaviour
         {
             Hero = Instantiate(Tomb, GameObject.Find("BattleScene").transform.Find("Player4"));
             Hero.transform.localPosition = new Vector3(0, 0, 0);
+            BattleCanvas.transform.Find("Player4").gameObject.SetActive(false);
         }
         else
         {
@@ -1518,6 +1953,8 @@ public class BattleManager : MonoBehaviour
     }
     public void OnFirstSkillBtnClicked(Button SelectedButton)
     {
+        firstEnemyClicked = firstHeroClicked = secondEnemyClicked = secondHeroClicked =
+            thirdEnemyClicked = thirdHeroClicked = fourthHeroClicked = fourthEnemyClicked = false; // 스킬부터 선택하도록 값 다 초기화
         if (firstBtnClicked)
         {
             firstBtnClicked = false;
@@ -1532,6 +1969,8 @@ public class BattleManager : MonoBehaviour
 
     public void OnSecondSkillBtnClicked(Button SelectedButton)
     {
+        firstEnemyClicked = firstHeroClicked = secondEnemyClicked = secondHeroClicked =
+            thirdEnemyClicked = thirdHeroClicked = fourthHeroClicked = fourthEnemyClicked = false; // 스킬부터 선택하도록 값 다 초기화
         if (secondBtnClicked)
         {
             secondBtnClicked = false;
@@ -1550,4 +1989,55 @@ public class BattleManager : MonoBehaviour
         }
     }
     #endregion
+
+    IEnumerator CheckCorruptionOrCourage(int HeroNum)
+    {
+        if (DataManager.Instance.PartyFormation[HeroNum].heroStress >= 200)
+        {
+            if (DataManager.Instance.PartyFormation[HeroNum].heroHp == 0)
+            {
+                ShowBattleLog("Player" + (HeroNum + 1).ToString() + "(이)가 심장마비로 <color=\"red\">사망</color>했습니다.");
+                HeroLeft--;
+                DataManager.Instance.PartyFormation[HeroNum].isDead = true;
+                BattleCanvas.transform.Find("Player" + (HeroNum + 1).ToString()).gameObject.SetActive(false);
+                Destroy(BattleScene.transform.Find("Player" + (HeroNum + 1).ToString()).transform.GetChild(0).gameObject);
+                Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroNum + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
+                ShowBattleLog("모든 Player의 스트레스 증가!");
+                yield return new WaitForSecondsRealtime(1.5f);
+                for (int i = 0; i < 4; i++)
+                {
+                    if (!DataManager.Instance.PartyFormation[i].isDead)
+                    {
+                        DataManager.Instance.PartyFormation[i].heroStress += 20;
+                        yield return StartCoroutine(CheckCorruptionOrCourage(i));
+                    }
+                }
+            }
+            else
+            {
+                ShowBattleLog("Player" + (HeroNum + 1).ToString() + "의 마음이 붕괴됩니다! 체력이 0이 됩니다.");
+                DataManager.Instance.PartyFormation[HeroNum].heroStress = 150;
+                DataManager.Instance.PartyFormation[HeroNum].heroHp = 0;
+                yield return new WaitForSecondsRealtime(1.5f);
+            }
+        }
+        // 붕괴/각성 상태가 아니며 처음으로 100을 초과
+        else if (DataManager.Instance.PartyFormation[HeroNum].heroStress >= 100 && DataManager.Instance.PartyFormation[HeroNum].Stress == Stress.Default)
+        {
+            ShowBattleLog("Player" + (HeroNum + 1).ToString() + "가 의지를 시험받고 있습니다.");
+
+            yield return new WaitForSecondsRealtime(3f);
+
+            if (UnityEngine.Random.Range(1, 101) > 25)
+            {
+                DataManager.Instance.PartyFormation[HeroNum].Stress = Stress.Negative;
+                ShowBattleLog("Player" + (HeroNum + 1).ToString() + " : <color=\"red\">부정적!</color>");
+            }
+            else
+            {
+                DataManager.Instance.PartyFormation[HeroNum].Stress = Stress.Positive;
+                ShowBattleLog("Player" + (HeroNum + 1).ToString() + " : <color=\"yellow\">긍정적!</color>");
+            }
+        }
+    }
 }

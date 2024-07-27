@@ -5,6 +5,7 @@ using UnityEngine;
 public class BasicHeroSetting
 {
     public bool isDead = false;
+    public bool DeathChecked = false;
     public int heroMaxHP = 30;
     public int heroHp = 30;
     public int heroStress = 0;

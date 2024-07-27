@@ -30,7 +30,9 @@ public class TeleportController : MonoBehaviour
         {
             Debug.Log("지정된 오브젝트와 포탈의 충돌 감지!");
             // 보스스테이지로 이동
-            SceneManager.LoadScene("BossScene");
+            //SceneManager.LoadScene("BossScene");
+            // DD -> 상점 Canvas Open
+            StartCoroutine("ShowShopCanvas");
         }
 
         if (collision.gameObject.layer == LayerMask.NameToLayer("Room"))
@@ -46,5 +48,12 @@ public class TeleportController : MonoBehaviour
                 prevRoom.SetActive(true);
             }
         }
+    }
+
+    IEnumerator ShowShopCanvas()
+    {
+        Time.timeScale = 0f;
+        yield return new WaitForSecondsRealtime(0.5f);
+        GameObject.Find("GameObject_Shop").transform.Find("Canvas_Shop").gameObject.SetActive(true);
     }
 }

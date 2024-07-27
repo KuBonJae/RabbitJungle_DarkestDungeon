@@ -83,6 +83,7 @@ public class PlayerController : MonoBehaviour
 
             map.transform.Find("KeyGuide").GetChild(i + 1).GetComponent<TextMeshProUGUI>().text = playerStat;
         }
+        map.transform.Find("KeyGuide").transform.Find("CoinAmount").GetComponent<TextMeshProUGUI>().text = "현재 코인 : " + DataManager.Instance.coin.ToString();
     }
 
     IEnumerator Flip()
