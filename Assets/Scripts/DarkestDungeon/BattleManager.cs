@@ -156,6 +156,8 @@ public class BattleManager : MonoBehaviour
                 }
             }
             shouldCheckingOrder = true;
+            while (SpeedOrder.Count > 0)
+                SpeedOrder.Dequeue(); // 전 전투에서 쓰던 값이 있다면 미리 다 비울 것
             CheckAttackOrder();
         }
 
