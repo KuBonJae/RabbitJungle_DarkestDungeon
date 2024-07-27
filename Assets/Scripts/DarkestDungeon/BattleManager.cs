@@ -79,6 +79,36 @@ public class BattleManager : MonoBehaviour
         secondHeroClicked = false;
         thirdHeroClicked = false;
         fourthHeroClicked = false;
+
+        for(int i=0; i<4;i++)
+        {
+            if (DataManager.Instance.PartyFormation[i].Stress == Stress.Negative) // 스테이지 넘어갈 때 부정적이면 적용될 일?
+            {
+                if (DataManager.Instance.PartyFormation[i].heroStress <= 100)
+                    DataManager.Instance.PartyFormation[i].heroStress += 20; // 스트레스 100 이하면 20 추가
+            }
+            else if(DataManager.Instance.PartyFormation[i].Stress == Stress.Positive) // 스테이지 넘어갈 때 긍정적이면 적용될 일?
+            {
+                if (DataManager.Instance.PartyFormation[i].heroStress >= 100) // 스트레스가 100 이상이면
+                    DataManager.Instance.PartyFormation[i].Stress = Stress.Default; // 영웅의 각성 초기화 시켜버리기
+                else // 스트레스 관리를 잘 했다면
+                {
+                    for(int j=0;j<4;j++)
+                    {
+                        if (i == j)
+                            continue; // 본인은 제외
+
+                        DataManager.Instance.PartyFormation[j].heroStress -= 10; // 아군들 스트레스 10씩 줄여줌
+                        if (DataManager.Instance.PartyFormation[j].heroStress <= 0)
+                            DataManager.Instance.PartyFormation[j].heroStress = 0;
+                        DataManager.Instance.PartyFormation[j].heroHp += 5; // 아군들 체력 회복 5씩
+                        if (DataManager.Instance.PartyFormation[j].heroHp >= DataManager.Instance.PartyFormation[j].heroMaxHP)
+                            DataManager.Instance.PartyFormation[j].heroHp = DataManager.Instance.PartyFormation[j].heroMaxHP;
+                    }
+                }
+
+            }
+        }
     }
 
     // Update is called once per frame

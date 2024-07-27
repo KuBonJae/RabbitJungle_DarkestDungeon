@@ -478,6 +478,10 @@ public class ItemController : MonoBehaviour
                             DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + "(이)가 죽음의 문턱 상태입니다.";
                             DataManager.Instance.makeAnnouncement = true;
                         }
+                        //
+                        DataManager.Instance.announcement = "Player" + (playerPos + 1).ToString() + " : 체력 " + rand.ToString() + "만큼 회복";
+                        DataManager.Instance.makeAnnouncement = true;
+                        //
                     }
                 }
                 else

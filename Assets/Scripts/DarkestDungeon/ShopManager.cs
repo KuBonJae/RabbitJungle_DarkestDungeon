@@ -11,17 +11,18 @@ public class ShopManager : MonoBehaviour
     public GameObject SelectedBuffName;
     public GameObject[] ShopItemBtns;
     public GameObject[] PlayerBtns;
-    int[] HowMuch = new int[10] { 150, 150, 300, 200, 450, 350, 200, 250, 250, 200 };
+    public GameObject[] PlayerPrefabs; // Melee / Marksman / Healer / Supporter / Tanker
+    int[] HowMuch = new int[11] { 150, 150, 300, 200, 450, 350, 200, 250, 250, 200, 500 };
 
-    bool maxhp, heal, minD, maxD, spd, crit, deathResist, healAmount, stressAmount, stress;
+    bool maxhp, heal, minD, maxD, spd, crit, deathResist, healAmount, stressAmount, stress, revive;
     int playerNum = 404;
 
     // Start is called before the first frame update
     void Start()
     {
-        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false;
+        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false;
         playerNum = 404;
-        for(int i=0; i<10; i++)
+        for(int i=0; i<11; i++)
         {
             ShopItemBtns[i].transform.Find("Gold").GetComponent<TextMeshProUGUI>().text = HowMuch[i].ToString();
         }
@@ -41,6 +42,7 @@ public class ShopManager : MonoBehaviour
         BuyHealAmount(healAmount);
         BuyStressAmount(stressAmount);
         BuyStressDown(stress);
+        BuyRevive(revive);
     }
 
     public void OnExitBtnClicked()
@@ -64,7 +66,7 @@ public class ShopManager : MonoBehaviour
                 {
                     DataManager.Instance.PartyFormation[playerNum].heroMaxHP += 3; // 버프 제공
                     DataManager.Instance.coin -= HowMuch[0]; // 코인 감소
-                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false; // 선택 해제
+                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
                     playerNum = 404; // 선택 해제
                     SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "구매 완료";
                 }
@@ -97,7 +99,7 @@ public class ShopManager : MonoBehaviour
                         if (DataManager.Instance.PartyFormation[playerNum].heroHp > DataManager.Instance.PartyFormation[playerNum].heroMaxHP)
                             DataManager.Instance.PartyFormation[playerNum].heroHp = DataManager.Instance.PartyFormation[playerNum].heroMaxHP;
                         DataManager.Instance.coin -= HowMuch[1]; // 코인 감소
-                        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false; // 선택 해제
+                        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
                         playerNum = 404; // 선택 해제
                         SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "구매 완료";
                     }
@@ -123,7 +125,7 @@ public class ShopManager : MonoBehaviour
                 {
                     DataManager.Instance.PartyFormation[playerNum].heroMinDamage += 1; // 버프 제공
                     DataManager.Instance.coin -= HowMuch[2]; // 코인 감소
-                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false; // 선택 해제
+                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
                     playerNum = 404; // 선택 해제
                     SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "구매 완료";
                 }
@@ -148,7 +150,7 @@ public class ShopManager : MonoBehaviour
                 {
                     DataManager.Instance.PartyFormation[playerNum].heroMaxDamage += 1; // 버프 제공
                     DataManager.Instance.coin -= HowMuch[3]; // 코인 감소
-                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false; // 선택 해제
+                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
                     playerNum = 404; // 선택 해제
                     SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "구매 완료";
                 }
@@ -173,7 +175,7 @@ public class ShopManager : MonoBehaviour
                 {
                     DataManager.Instance.PartyFormation[playerNum].heroBasicSpeed += 1; // 버프 제공
                     DataManager.Instance.coin -= HowMuch[4]; // 코인 감소
-                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false; // 선택 해제
+                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
                     playerNum = 404; // 선택 해제
                     SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "구매 완료";
                 }
@@ -198,7 +200,7 @@ public class ShopManager : MonoBehaviour
                 {
                     DataManager.Instance.PartyFormation[playerNum].heroBasicCriticalHit += 1; // 버프 제공
                     DataManager.Instance.coin -= HowMuch[5]; // 코인 감소
-                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false; // 선택 해제
+                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
                     playerNum = 404; // 선택 해제
                     SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "구매 완료";
                 }
@@ -222,7 +224,7 @@ public class ShopManager : MonoBehaviour
                 if (!DataManager.Instance.PartyFormation[playerNum].isDead)
                 {
                     if(DataManager.Instance.PartyFormation[playerNum].heroBasicDeathDoor >= 80)
-                        SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "현재 최대치입니다 (최대 80)";
+                        SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "현재 최대치입니다\n(최대 80)";
                     else
                     {
                         DataManager.Instance.PartyFormation[playerNum].heroBasicDeathDoor += 5; // 버프 제공
@@ -230,7 +232,7 @@ public class ShopManager : MonoBehaviour
                             DataManager.Instance.PartyFormation[playerNum].heroBasicDeathDoor = 80;
 
                         DataManager.Instance.coin -= HowMuch[6]; // 코인 감소
-                        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false; // 선택 해제
+                        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
                         playerNum = 404; // 선택 해제
                         SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "구매 완료";
                     }  
@@ -258,13 +260,13 @@ public class ShopManager : MonoBehaviour
                     ((HealerSetting)DataManager.Instance.PartyFormation[playerNum]).minHealAmount += 1; // 버프 제공
                     ((HealerSetting)DataManager.Instance.PartyFormation[playerNum]).maxHealAmount += 1; // 버프 제공
                     DataManager.Instance.coin -= HowMuch[7]; // 코인 감소
-                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false; // 선택 해제
+                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
                     playerNum = 404; // 선택 해제
                     SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "구매 완료";
                 }
                 else
                 {
-                    SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "플레이어가 사망했거나 힐러가 아닙니다.";
+                    SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "플레이어가 사망했거나\n힐러가 아닙니다.";
                 }
             }
         }
@@ -284,13 +286,13 @@ public class ShopManager : MonoBehaviour
                     ((SupporterSetting)DataManager.Instance.PartyFormation[playerNum]).minStressDownAmount += 1; // 버프 제공
                     ((SupporterSetting)DataManager.Instance.PartyFormation[playerNum]).maxStressDownAmount += 1; // 버프 제공
                     DataManager.Instance.coin -= HowMuch[7]; // 코인 감소
-                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false; // 선택 해제
+                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
                     playerNum = 404; // 선택 해제
                     SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "구매 완료";
                 }
                 else
                 {
-                    SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "플레이어가 사망했거나 서포터가 아닙니다.";
+                    SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "플레이어가 사망했거나\n서포터가 아닙니다.";
                 }
             }
         }
@@ -308,7 +310,7 @@ public class ShopManager : MonoBehaviour
                 if (!DataManager.Instance.PartyFormation[playerNum].isDead)
                 {
                     if (DataManager.Instance.PartyFormation[playerNum].heroStress <= 0)
-                        SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "이미 최저치의 스트레스를 가지고 있습니다.";
+                        SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "이미 최저치의 스트레스를\n가지고 있습니다.";
                     else
                     {
                         DataManager.Instance.PartyFormation[playerNum].heroStress -= 10; // 버프 제공
@@ -320,7 +322,7 @@ public class ShopManager : MonoBehaviour
                                 DataManager.Instance.PartyFormation[playerNum].Stress = Stress.Default;
                         }
                         DataManager.Instance.coin -= HowMuch[9]; // 코인 감소
-                        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false; // 선택 해제
+                        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
                         playerNum = 404; // 선택 해제
                         SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "구매 완료";
                     }
@@ -332,11 +334,62 @@ public class ShopManager : MonoBehaviour
             }
         }
     }
+    void BuyRevive(bool b)
+    {
+        if (b)
+        {
+            if (playerNum == 404)
+            {
+                // 플레이어 선택 대기
+            }
+            else
+            {
+                if (DataManager.Instance.PartyFormation[playerNum].isDead) // 죽은 사람한테만 사용 가능
+                {
+                    //DataManager.Instance.PartyFormation[playerNum].heroBasicSpeed += 1; // 버프 제공
+                    DataManager.Instance.PartyFormation[playerNum].isDead = false; // 기존 캐릭터 되살리기
+                    DataManager.Instance.PartyFormation[playerNum].DeathChecked = false;
+                    DataManager.Instance.PartyFormation[playerNum].heroHp = 1; // 체력은 1로
+                    DataManager.Instance.PartyFormation[playerNum].heroStress = 0; // 스트레스 리셋
+                    DataManager.Instance.PartyFormation[playerNum].Stress = Stress.Default; // 영웅 붕괴, 각성 리셋
+                    DataManager.Instance.coin -= HowMuch[10]; // 코인 감소
+                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
+                    playerNum = 404; // 선택 해제
+                    SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "되살리기 완료";
+
+                    Destroy(GameObject.Find("ShopScene").transform.Find("Player" + (playerNum + 1).ToString()).transform.GetChild(0).gameObject); // 기존에 있을 묘비 프리팹 삭제
+                    switch(DataManager.Instance.PartyFormation[playerNum].heroClass) // 클래스 명에 따라 알맞은 영웅 프리팹 재생성
+                    {
+                        case ClassName.Healer:
+                            Instantiate(PlayerPrefabs[2], GameObject.Find("ShopScene").transform.Find("Player" + (playerNum + 1).ToString()).transform).transform.localPosition = Vector3.zero;
+                            break;
+                        case ClassName.Supporter:
+                            Instantiate(PlayerPrefabs[3], GameObject.Find("ShopScene").transform.Find("Player" + (playerNum + 1).ToString()).transform).transform.localPosition = Vector3.zero;
+                            break;
+                        case ClassName.Melee:
+                            Instantiate(PlayerPrefabs[0], GameObject.Find("ShopScene").transform.Find("Player" + (playerNum + 1).ToString()).transform).transform.localPosition = Vector3.zero;
+                            break;
+                        case ClassName.Marksman:
+                            Instantiate(PlayerPrefabs[1], GameObject.Find("ShopScene").transform.Find("Player" + (playerNum + 1).ToString()).transform).transform.localPosition = Vector3.zero;
+                            break;
+                        case ClassName.Tanker:
+                            Instantiate(PlayerPrefabs[4], GameObject.Find("ShopScene").transform.Find("Player" + (playerNum + 1).ToString()).transform).transform.localPosition = Vector3.zero;
+                            break;
+                    }
+                }
+                else
+                {
+                    SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "얘는 살아있는 사람을\n뭘로 보고!";
+                }
+            }
+        }
+    }
     #region 버튼 클릭 시 데이터 획득
     public void OnMaxHpBtnClicked()
     {
-        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false;
-        if(DataManager.Instance.coin > HowMuch[0])
+        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
+        playerNum = 404; // 선택 해제
+        if (DataManager.Instance.coin > HowMuch[0])
         {
             maxhp = true;
             SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "최대 체력 증가";
@@ -348,7 +401,8 @@ public class ShopManager : MonoBehaviour
     }
     public void OnHealBtnClicked()
     {
-        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false;
+        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
+        playerNum = 404; // 선택 해제
         if (DataManager.Instance.coin > HowMuch[1])
         {
             heal = true;
@@ -361,7 +415,8 @@ public class ShopManager : MonoBehaviour
     }
     public void OnMinDmgBtnClicked()
     {
-        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false;
+        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
+        playerNum = 404; // 선택 해제
         if (DataManager.Instance.coin > HowMuch[2])
         {
             minD = true;
@@ -374,7 +429,8 @@ public class ShopManager : MonoBehaviour
     }
     public void OnMaxDmgBtnClicked()
     {
-        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false;
+        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
+        playerNum = 404; // 선택 해제
         if (DataManager.Instance.coin > HowMuch[3])
         {
             maxD = true;
@@ -387,7 +443,8 @@ public class ShopManager : MonoBehaviour
     }
     public void OnSpeedBtnClicked()
     {
-        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false;
+        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
+        playerNum = 404; // 선택 해제
         if (DataManager.Instance.coin > HowMuch[4])
         {
             spd = true;
@@ -400,7 +457,8 @@ public class ShopManager : MonoBehaviour
     }
     public void OnCritBtnClicked()
     {
-        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false;
+        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
+        playerNum = 404; // 선택 해제
         if (DataManager.Instance.coin > HowMuch[5])
         {
             crit = true;
@@ -413,7 +471,8 @@ public class ShopManager : MonoBehaviour
     }
     public void OnDeathResistBtnClicked()
     {
-        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false;
+        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
+        playerNum = 404; // 선택 해제
         if (DataManager.Instance.coin > HowMuch[6])
         {
             deathResist = true;
@@ -426,7 +485,8 @@ public class ShopManager : MonoBehaviour
     }
     public void OnHealAmountBtnClicked()
     {
-        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false;
+        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
+        playerNum = 404; // 선택 해제
         if (DataManager.Instance.coin > HowMuch[7])
         {
             healAmount = true;
@@ -439,7 +499,8 @@ public class ShopManager : MonoBehaviour
     }
     public void OnStressAmountBtnClicked()
     {
-        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false;
+        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
+        playerNum = 404; // 선택 해제
         if (DataManager.Instance.coin > HowMuch[8])
         {
             stressAmount = true;
@@ -452,11 +513,26 @@ public class ShopManager : MonoBehaviour
     }
     public void OnStressBtnClicked()
     {
-        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = false;
+        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
+        playerNum = 404; // 선택 해제
         if (DataManager.Instance.coin > HowMuch[9])
         {
             stress = true;
             SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "스트레스 감소";
+        }
+        else
+        {
+            SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "얘! 돈가져와!";
+        }
+    }
+    public void OnReviveBtnClicked()
+    {
+        maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
+        playerNum = 404; // 선택 해제
+        if (DataManager.Instance.coin > HowMuch[9])
+        {
+            revive = true;
+            SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "체력 1로 되살리기";
         }
         else
         {
