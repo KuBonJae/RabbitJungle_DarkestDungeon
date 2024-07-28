@@ -273,14 +273,14 @@ public class BattleManager : MonoBehaviour
         {
             if(moveTime < 2f)
             {
-                moveObject.transform.localPosition = Vector3.MoveTowards(moveObject.transform.localPosition, destination, Time.unscaledDeltaTime * 50);
+                moveObject.transform.localPosition = Vector3.MoveTowards(moveObject.transform.localPosition, destination, Time.unscaledDeltaTime * 75);
                 moveTime += Time.unscaledDeltaTime;
             }
             else
             {
-                moveObject.transform.localPosition = Vector3.MoveTowards(moveObject.transform.localPosition, origin, Time.unscaledDeltaTime * 50);
+                moveObject.transform.localPosition = Vector3.MoveTowards(moveObject.transform.localPosition, origin, Time.unscaledDeltaTime * 75);
                 moveTime += Time.unscaledDeltaTime;
-                if (moveObject.transform.localPosition == origin || moveTime >= 4f)
+                if (moveObject.transform.localPosition == origin || moveTime >= 5f)
                 {
                     moveTime = 0f;
                     moveObject = null;
@@ -393,7 +393,7 @@ public class BattleManager : MonoBehaviour
                         DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
                         HeroLeft--;
                         BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
-                        Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(1).gameObject);
+                        Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(2).gameObject);
                         Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
                         ShowBattleLog("모든 Player의 스트레스 증가!");
                         for(int i=0;i<4;i++)
@@ -409,8 +409,17 @@ public class BattleManager : MonoBehaviour
                 else // 죽음의 문턱은 아니다
                 {
                     // 경감률에 따라 데미지 경감
-                    int realDmg = randomDmg *
-                        ((100 - DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100);
+                    //int realDmg = randomDmg * 100 *
+                    //    ((100 - DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100) / 100;
+
+                    float realFloatDmg = ((float)randomDmg);
+                    realFloatDmg *= ((100f - (float)DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - (float)DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100f);
+                    int realDmg = Convert.ToInt32(Math.Truncate(realFloatDmg));
+
+                    //float realFloatDmg = ((float)randomDmg / 2) * 100 *
+                    //        ((100 - DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100) / 100;
+                    //int realDmg = (int)Math.Ceiling(realFloatDmg);
+
                     DataManager.Instance.PartyFormation[HeroDmged].heroHp -= realDmg;
                     StartCoroutine(ShowDamageText("<color=\"red\">" + realDmg.ToString() + "</color>", false, HeroDmged, false, false));
                     ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + realDmg.ToString() + " 만큼의 데미지");
@@ -541,7 +550,7 @@ public class BattleManager : MonoBehaviour
                             HeroLeft--;
                             DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
                             BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
-                            Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(1).gameObject);
+                            Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(2).gameObject);
                             Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
                             ShowBattleLog("모든 Player의 스트레스 증가!");
                             for (int i = 0; i < 4; i++)
@@ -582,8 +591,12 @@ public class BattleManager : MonoBehaviour
                 else
                 {
                     // 경감률에 따라 데미지 감소
-                    int realDmg = (randomDmg / 2) *
-                            ((100 - DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100);
+                    //float realFloatDmg = ((float)randomDmg / 2) * 100 *
+                    //        ((100 - DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100) / 100;
+                    //int realDmg = (int)Math.Ceiling(realFloatDmg);
+                    float realFloatDmg = ((float)randomDmg / 2f);
+                    realFloatDmg *= ((100f - (float)DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - (float)DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100f);
+                    int realDmg = Convert.ToInt32(Math.Truncate(realFloatDmg));
 
                     if (DataManager.Instance.PartyFormation[HeroDmged].heroHp == 0) // 현재 죽음의 문턱
                     {
@@ -604,7 +617,7 @@ public class BattleManager : MonoBehaviour
                             DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
                             HeroLeft--;
                             BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
-                            Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(1).gameObject);
+                            Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(2).gameObject);
                             Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
                             ShowBattleLog("모든 Player의 스트레스 증가!");
                             for (int i = 0; i < 4; i++)
@@ -692,7 +705,7 @@ public class BattleManager : MonoBehaviour
                             DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
                             HeroLeft--;
                             BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
-                            Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(1).gameObject);
+                            Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(2).gameObject);
                             Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
                             ShowBattleLog("모든 Player의 스트레스 증가!");
                             for (int i = 0; i < 4; i++)
@@ -973,6 +986,7 @@ public class BattleManager : MonoBehaviour
         {
             CurHero = WhoseTurn.Item1;
             ShowBattleLog("Player" + (CurHero + 1).ToString() + " : " + DataManager.Instance.PartyFormation[CurHero].heroClass.ToString() + " 의 차례!");
+            BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).Find("Indicator").gameObject.SetActive(true);
             while (true)
             {
                 yield return null;
@@ -1680,6 +1694,7 @@ public class BattleManager : MonoBehaviour
             }
 
             yield return new WaitForSecondsRealtime(2f);
+            BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).Find("Indicator").gameObject.SetActive(false);
             SpeedOrder.Dequeue();
             nextBattleOrder = true;
         }
@@ -1743,13 +1758,13 @@ public class BattleManager : MonoBehaviour
         GameObject Hero;
 
         if (GameObject.Find("BattleScene").transform.Find("Player1").childCount != 0)
-            Destroy(GameObject.Find("BattleScene").transform.Find("Player1").GetChild(1).gameObject);
+            Destroy(GameObject.Find("BattleScene").transform.Find("Player1").GetChild(2).gameObject);
         if (GameObject.Find("BattleScene").transform.Find("Player2").childCount != 0)
-            Destroy(GameObject.Find("BattleScene").transform.Find("Player2").GetChild(1).gameObject);
+            Destroy(GameObject.Find("BattleScene").transform.Find("Player2").GetChild(2).gameObject);
         if (GameObject.Find("BattleScene").transform.Find("Player3").childCount != 0)
-            Destroy(GameObject.Find("BattleScene").transform.Find("Player3").GetChild(1).gameObject);
+            Destroy(GameObject.Find("BattleScene").transform.Find("Player3").GetChild(2).gameObject);
         if (GameObject.Find("BattleScene").transform.Find("Player4").childCount != 0)
-            Destroy(GameObject.Find("BattleScene").transform.Find("Player4").GetChild(1).gameObject);
+            Destroy(GameObject.Find("BattleScene").transform.Find("Player4").GetChild(2).gameObject);
 
         if (DataManager.Instance.PartyFormation[0].isDead)
         {
@@ -2116,7 +2131,7 @@ public class BattleManager : MonoBehaviour
                     HeroLeft--;
                     DataManager.Instance.PartyFormation[HeroNum].isDead = true;
                     BattleCanvas.transform.Find("Player" + (HeroNum + 1).ToString()).gameObject.SetActive(false);
-                    Destroy(BattleScene.transform.Find("Player" + (HeroNum + 1).ToString()).transform.GetChild(1).gameObject);
+                    Destroy(BattleScene.transform.Find("Player" + (HeroNum + 1).ToString()).transform.GetChild(2).gameObject);
                     Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroNum + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
                     ShowBattleLog("모든 Player의 스트레스 증가!");
                     yield return new WaitForSecondsRealtime(1.5f);

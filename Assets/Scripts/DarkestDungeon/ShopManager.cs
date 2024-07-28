@@ -356,8 +356,7 @@ public class ShopManager : MonoBehaviour
                     DataManager.Instance.PartyFormation[playerNum].heroBuffRemain = 0;
                     DataManager.Instance.PartyFormation[playerNum].Stress = Stress.Default; // 영웅 붕괴, 각성 리셋
                     DataManager.Instance.coin -= HowMuch[10]; // 코인 감소
-                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
-                    playerNum = 404; // 선택 해제
+                    
                     SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "되살리기 완료";
 
                     Destroy(GameObject.Find("ShopScene").transform.Find("Player" + (playerNum + 1).ToString()).transform.GetChild(0).gameObject); // 기존에 있을 묘비 프리팹 삭제
@@ -379,6 +378,8 @@ public class ShopManager : MonoBehaviour
                             Instantiate(PlayerPrefabs[4], GameObject.Find("ShopScene").transform.Find("Player" + (playerNum + 1).ToString()).transform).transform.localPosition = Vector3.zero;
                             break;
                     }
+                    maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
+                    playerNum = 404; // 선택 해제
                 }
                 else
                 {
