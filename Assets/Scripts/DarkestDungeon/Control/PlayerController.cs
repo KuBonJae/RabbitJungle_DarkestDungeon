@@ -47,7 +47,7 @@ public class PlayerController : MonoBehaviour
 
             UpdatePlayerStat();
 
-            if(!DataManager.Instance.battle_ing) // battle - ing -> battle state -> timescale is 0
+            if(!DataManager.Instance.battle_ing && !GameObject.Find("Canvas").transform.Find("CardSelect").gameObject.activeSelf) // battle - ing -> battle state -> timescale is 0
             {
                 if (map.activeSelf)
                     Time.timeScale = 0f;

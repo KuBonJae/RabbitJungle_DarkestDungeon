@@ -1320,7 +1320,7 @@ public class BattleManager : MonoBehaviour
                         SkillIcons.SetActive(false);
                         for (int i = 0; i < 4; i++)
                         {
-                            if (DataManager.Instance.PartyFormation[i].heroBuffRemain != 0) // 버프가 없는 상태였다면
+                            if (DataManager.Instance.PartyFormation[i].heroBuffRemain == 0) // 버프가 없는 상태였다면
                                 DataManager.Instance.PartyFormation[i].heroBasicProtection = 20; // 버프 추가
                             DataManager.Instance.PartyFormation[i].heroBuffRemain = 2; // 버프 횟수 2턴
                         }
