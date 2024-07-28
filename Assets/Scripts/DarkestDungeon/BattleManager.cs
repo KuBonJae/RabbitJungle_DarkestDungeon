@@ -93,7 +93,7 @@ public class BattleManager : MonoBehaviour
             }
             else if(DataManager.Instance.PartyFormation[i].Stress == Stress.Positive) // 스테이지 넘어갈 때 긍정적이면 적용될 일?
             {
-                if (DataManager.Instance.PartyFormation[i].heroStress >= 100) // 스트레스가 100 이상이면
+                if (DataManager.Instance.PartyFormation[i].heroStress >= 150) // 스트레스가 100 이상이면
                     DataManager.Instance.PartyFormation[i].Stress = Stress.Default; // 영웅의 각성 초기화 시켜버리기
                 else // 스트레스 관리를 잘 했다면
                 {
@@ -185,7 +185,7 @@ public class BattleManager : MonoBehaviour
                 if (DataManager.Instance.PartyFormation[i].heroBasicProtection != 0) // 탱커가 준 보호 버프가 존재한다면
                 {
                     DataManager.Instance.PartyFormation[i].heroBuffRemain--; // 버프 유지 횟수 감소
-                    if (DataManager.Instance.PartyFormation[i].heroBuffRemain <= 0)
+                    if (DataManager.Instance.PartyFormation[i].heroBuffRemain < 0)
                         DataManager.Instance.PartyFormation[i].heroBasicProtection = 0;
                 }
             }
@@ -1059,7 +1059,7 @@ public class BattleManager : MonoBehaviour
                             #region 영웅의 각성 시 효과 발동
                             for (int i=0;i<4;i++)
                             {
-                                if(i != CurHero && DataManager.Instance.PartyFormation[i].Stress == Stress.Positive) // 공격자 제외 다른 이가 긍정적 효과일 때
+                                if(i != CurHero && DataManager.Instance.PartyFormation[i].Stress == Stress.Positive && !DataManager.Instance.PartyFormation[i].isDead) // 공격자 제외 다른 이가 긍정적 효과일 때
                                 {
                                     if(UnityEngine.Random.Range(0, 100) < 40) // 20%
                                     {
@@ -1169,7 +1169,7 @@ public class BattleManager : MonoBehaviour
                                 #region 영웅의 각성 시 효과 발동
                                 for (int j = 0; j < 4; j++)
                                 {
-                                    if (j != CurHero && DataManager.Instance.PartyFormation[j].Stress == Stress.Positive) // 공격자 제외 다른 이가 긍정적 효과일 때
+                                    if (j != CurHero && DataManager.Instance.PartyFormation[j].Stress == Stress.Positive && !DataManager.Instance.PartyFormation[i].isDead) // 공격자 제외 다른 이가 긍정적 효과일 때
                                     {
                                         if (UnityEngine.Random.Range(0, 100) < 40) // 20%
                                         {
@@ -1275,7 +1275,7 @@ public class BattleManager : MonoBehaviour
                                 #region 영웅의 각성 시 효과 발동
                                 for (int j = 0; j < 4; j++)
                                 {
-                                    if (j != CurHero && DataManager.Instance.PartyFormation[j].Stress == Stress.Positive) // 공격자 제외 다른 이가 긍정적 효과일 때
+                                    if (j != CurHero && DataManager.Instance.PartyFormation[j].Stress == Stress.Positive && !DataManager.Instance.PartyFormation[i].isDead) // 공격자 제외 다른 이가 긍정적 효과일 때
                                     {
                                         if (UnityEngine.Random.Range(0, 100) < 40) // 20%
                                         {
@@ -1320,7 +1320,7 @@ public class BattleManager : MonoBehaviour
                         SkillIcons.SetActive(false);
                         for (int i = 0; i < 4; i++)
                         {
-                            if (DataManager.Instance.PartyFormation[i].heroBuffRemain == 0) // 버프가 없는 상태였다면
+                            if (DataManager.Instance.PartyFormation[i].heroBasicProtection != 20) // 버프가 없는 상태였다면
                                 DataManager.Instance.PartyFormation[i].heroBasicProtection = 20; // 버프 추가
                             DataManager.Instance.PartyFormation[i].heroBuffRemain = 2; // 버프 횟수 2턴
                         }
@@ -2106,51 +2106,54 @@ public class BattleManager : MonoBehaviour
 
     IEnumerator CheckCorruptionOrCourage(int HeroNum)
     {
-        if (DataManager.Instance.PartyFormation[HeroNum].heroStress >= 200)
+        if (!DataManager.Instance.PartyFormation[HeroNum].isDead) // 안죽은 애들만 체크
         {
-            if (DataManager.Instance.PartyFormation[HeroNum].heroHp == 0)
+            if (DataManager.Instance.PartyFormation[HeroNum].heroStress >= 200)
             {
-                ShowBattleLog("Player" + (HeroNum + 1).ToString() + "(이)가 심장마비로 <color=\"red\">사망</color>했습니다.");
-                HeroLeft--;
-                DataManager.Instance.PartyFormation[HeroNum].isDead = true;
-                BattleCanvas.transform.Find("Player" + (HeroNum + 1).ToString()).gameObject.SetActive(false);
-                Destroy(BattleScene.transform.Find("Player" + (HeroNum + 1).ToString()).transform.GetChild(1).gameObject);
-                Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroNum + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
-                ShowBattleLog("모든 Player의 스트레스 증가!");
-                yield return new WaitForSecondsRealtime(1.5f);
-                for (int i = 0; i < 4; i++)
+                if (DataManager.Instance.PartyFormation[HeroNum].heroHp == 0)
                 {
-                    if (!DataManager.Instance.PartyFormation[i].isDead)
+                    ShowBattleLog("Player" + (HeroNum + 1).ToString() + "(이)가 심장마비로 <color=\"red\">사망</color>했습니다.");
+                    HeroLeft--;
+                    DataManager.Instance.PartyFormation[HeroNum].isDead = true;
+                    BattleCanvas.transform.Find("Player" + (HeroNum + 1).ToString()).gameObject.SetActive(false);
+                    Destroy(BattleScene.transform.Find("Player" + (HeroNum + 1).ToString()).transform.GetChild(1).gameObject);
+                    Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroNum + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
+                    ShowBattleLog("모든 Player의 스트레스 증가!");
+                    yield return new WaitForSecondsRealtime(1.5f);
+                    for (int i = 0; i < 4; i++)
                     {
-                        DataManager.Instance.PartyFormation[i].heroStress += 20;
-                        yield return StartCoroutine(CheckCorruptionOrCourage(i));
+                        if (!DataManager.Instance.PartyFormation[i].isDead)
+                        {
+                            DataManager.Instance.PartyFormation[i].heroStress += 20;
+                            yield return StartCoroutine(CheckCorruptionOrCourage(i));
+                        }
                     }
                 }
+                else
+                {
+                    ShowBattleLog("Player" + (HeroNum + 1).ToString() + "의 마음이 붕괴됩니다! 체력이 0이 됩니다.");
+                    DataManager.Instance.PartyFormation[HeroNum].heroStress = 150;
+                    DataManager.Instance.PartyFormation[HeroNum].heroHp = 0;
+                    yield return new WaitForSecondsRealtime(1.5f);
+                }
             }
-            else
+            // 붕괴/각성 상태가 아니며 처음으로 100을 초과
+            else if (DataManager.Instance.PartyFormation[HeroNum].heroStress >= 100 && DataManager.Instance.PartyFormation[HeroNum].Stress == Stress.Default)
             {
-                ShowBattleLog("Player" + (HeroNum + 1).ToString() + "의 마음이 붕괴됩니다! 체력이 0이 됩니다.");
-                DataManager.Instance.PartyFormation[HeroNum].heroStress = 150;
-                DataManager.Instance.PartyFormation[HeroNum].heroHp = 0;
-                yield return new WaitForSecondsRealtime(1.5f);
-            }
-        }
-        // 붕괴/각성 상태가 아니며 처음으로 100을 초과
-        else if (DataManager.Instance.PartyFormation[HeroNum].heroStress >= 100 && DataManager.Instance.PartyFormation[HeroNum].Stress == Stress.Default)
-        {
-            ShowBattleLog("Player" + (HeroNum + 1).ToString() + "가 의지를 시험받고 있습니다.");
+                ShowBattleLog("Player" + (HeroNum + 1).ToString() + "가 의지를 시험받고 있습니다.");
 
-            yield return new WaitForSecondsRealtime(3f);
+                yield return new WaitForSecondsRealtime(3f);
 
-            if (UnityEngine.Random.Range(1, 101) > 25)
-            {
-                DataManager.Instance.PartyFormation[HeroNum].Stress = Stress.Negative;
-                ShowBattleLog("Player" + (HeroNum + 1).ToString() + " : <color=\"red\">부정적!</color>");
-            }
-            else
-            {
-                DataManager.Instance.PartyFormation[HeroNum].Stress = Stress.Positive;
-                ShowBattleLog("Player" + (HeroNum + 1).ToString() + " : <color=\"yellow\">긍정적!</color>");
+                if (UnityEngine.Random.Range(1, 101) > 25)
+                {
+                    DataManager.Instance.PartyFormation[HeroNum].Stress = Stress.Negative;
+                    ShowBattleLog("Player" + (HeroNum + 1).ToString() + " : <color=\"red\">부정적!</color>");
+                }
+                else
+                {
+                    DataManager.Instance.PartyFormation[HeroNum].Stress = Stress.Positive;
+                    ShowBattleLog("Player" + (HeroNum + 1).ToString() + " : <color=\"yellow\">긍정적!</color>");
+                }
             }
         }
     }

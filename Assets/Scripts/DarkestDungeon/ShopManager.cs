@@ -351,6 +351,9 @@ public class ShopManager : MonoBehaviour
                     DataManager.Instance.PartyFormation[playerNum].DeathChecked = false;
                     DataManager.Instance.PartyFormation[playerNum].heroHp = 1; // 체력은 1로
                     DataManager.Instance.PartyFormation[playerNum].heroStress = 0; // 스트레스 리셋
+                    DataManager.Instance.PartyFormation[playerNum].heroBasicDeathDoor = 67;
+                    DataManager.Instance.PartyFormation[playerNum].heroBasicProtection = 0;
+                    DataManager.Instance.PartyFormation[playerNum].heroBuffRemain = 0;
                     DataManager.Instance.PartyFormation[playerNum].Stress = Stress.Default; // 영웅 붕괴, 각성 리셋
                     DataManager.Instance.coin -= HowMuch[10]; // 코인 감소
                     maxhp = heal = minD = maxD = spd = crit = deathResist = healAmount = stressAmount = stress = revive = false; // 선택 해제
