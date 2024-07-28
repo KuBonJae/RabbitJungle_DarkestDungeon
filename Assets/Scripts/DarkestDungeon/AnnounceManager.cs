@@ -6,11 +6,12 @@ using UnityEngine;
 public class AnnounceManager : MonoBehaviour
 {
     public GameObject Announce;
+    Coroutine coroutine;
 
     // Start is called before the first frame update
     void Start()
     {
-        
+        coroutine = null;
     }
 
     // Update is called once per frame
@@ -18,12 +19,14 @@ public class AnnounceManager : MonoBehaviour
     {
         if(DataManager.Instance.makeAnnouncement)
         {
+            if(coroutine != null)
+                StopCoroutine(coroutine);
             Color c = Announce.GetComponent<TextMeshProUGUI>().color; // 아나운서가 있는 중에 다른방에 들어가 버렸을땐 기존꺼 바로 0으로 없어지게 하고 다음거 진행
             c.a = 0f;
             Announce.GetComponent<TextMeshProUGUI>().color = c;
             DataManager.Instance.makeAnnouncement = false;
             Announce.GetComponent<TextMeshProUGUI>().text = DataManager.Instance.announcement;
-            StartCoroutine("MakeAnnouncement");
+            coroutine = StartCoroutine("MakeAnnouncement");
         }
     }
 

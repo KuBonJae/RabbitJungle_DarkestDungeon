@@ -16,7 +16,7 @@ public class BasicHeroSetting
     public int heroBasicSpeed = 5;
     public int heroBasicDodgeRate = 10;
     public int heroBasicAccuracy = 100;
-    public int heroBasicCriticalHit = 5;
+    public int heroBasicCriticalHit = 5; //5
     public int heroBasicDeathDoor = 67;
     public int heroBasicProtection = 0;
     public int heroBuffRemain = 0;

@@ -12,6 +12,6 @@ public class BasicEnemySetting
     public int BasicSpeed = 5;
     public int BasicDodgeRate = 10;
     public int BasicAccuracy = 100;
-    public int BasicCriticalHit = 5;
+    public int BasicCriticalHit = 5; //5
     public EnemyClassName enemyClass = EnemyClassName.Default;
 }

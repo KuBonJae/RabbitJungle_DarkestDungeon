@@ -23,6 +23,8 @@ public class BattleManager : MonoBehaviour
     public GameObject[] Skills;
     private Button CurSelectedBtn;
     public GameObject[] Serifu;
+    GameObject BattleEventCamera;
+    public GameObject DamageTextPrefab;
 
     private Queue<string> BattleLog = new Queue<string>();
     private const int MaxLog = 10;
@@ -65,6 +67,8 @@ public class BattleManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        BattleEventCamera = GameObject.Find("Camera").transform.Find("BattleEventCam").gameObject;
+
         EnemyLeft = 4;
         //HeroLeft = 4;
         SpeedOrder = new PriorityQueue(8);
@@ -292,7 +296,8 @@ public class BattleManager : MonoBehaviour
     {
         for(int i=0; i<4; i++)
         {
-            TextMeshProUGUI TEXT = BattleCanvas.transform.Find("Player" + (i + 1).ToString()).transform.Find("HpStress").GetComponent<TextMeshProUGUI>();
+            //TextMeshProUGUI TEXT = BattleCanvas.transform.Find("Player" + (i + 1).ToString()).transform.Find("HpStress").GetComponent<TextMeshProUGUI>(); // 기존, UI Canvas
+            TextMeshProUGUI TEXT = BattleScene.transform.Find("Player" + (i + 1).ToString()).transform.Find("Canvas_P" + (i + 1).ToString()).transform.Find("HpStress").GetComponent<TextMeshProUGUI>(); // 신규, 게임 오브젝트에 붙인 Canvas
             if (DataManager.Instance.PartyFormation[i].isDead)
                 TEXT.text = "<color=\"red\">Dead </color>";
             else
@@ -300,7 +305,8 @@ public class BattleManager : MonoBehaviour
                 TEXT.text = "<color=\"red\">" + DataManager.Instance.PartyFormation[i].heroHp.ToString() + " / " + DataManager.Instance.PartyFormation[i].heroMaxHP.ToString()
                     + "</color>\n" + DataManager.Instance.PartyFormation[i].heroStress.ToString();
             }
-            TEXT = BattleCanvas.transform.Find("Enemy" + (i + 1).ToString()).transform.Find("HpStress").GetComponent<TextMeshProUGUI>();
+            //TEXT = BattleCanvas.transform.Find("Enemy" + (i + 1).ToString()).transform.Find("HpStress").GetComponent<TextMeshProUGUI>();
+            TEXT = BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform.Find("Canvas_E" + (i + 1).ToString()).transform.Find("HpStress").GetComponent<TextMeshProUGUI>();
             if (DataManager.Instance.EnemyFormation[i].isDead)
                 TEXT.text = "<color=\"red\">Dead </color>";
             else
@@ -346,6 +352,7 @@ public class BattleManager : MonoBehaviour
             {
                 // 회피 성공
                 ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "가 공격을 회피했습니다. " + HeroDodgeRate.ToString() + " / " + randomDodge.ToString());
+                StartCoroutine(ShowDamageText("회피", false, HeroDmged, false, true));
             }
             else // 맞음
             {
@@ -354,7 +361,18 @@ public class BattleManager : MonoBehaviour
                 {
                     // 치명타 터짐
                     ShowBattleLog("<color=\"red\">치명타!</color>");
+                    Vector3 pos = BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.position 
+                        + BattleScene.transform.Find("Enemy" + (CurEnemy + 1).ToString()).transform.position; // 공격자와 피격자의 값의 평균에 위치시킬 예정
+                    pos.x /= 2;
+                    pos.y /= 2; // 평균 값
+                    pos.z = BattleEventCamera.transform.position.z;
+                    BattleEventCamera.transform.position = pos;
+                    BattleEventCamera.SetActive(true);
                     randomDmg *= 2;
+                    moveTime -= 1.5f; // movetoward로 이동중인 친구를 잠시 늦춤
+                    StartCoroutine(ShowDamageText("<color=\"yellow\">치명타!</color>", false, HeroDmged, false, true));
+                    yield return new WaitForSecondsRealtime(1.5f);
+                    BattleEventCamera.SetActive(false);
                 }
                 if (DataManager.Instance.PartyFormation[HeroDmged].heroHp == 0) // 현재 죽음의 문턱
                 {
@@ -375,7 +393,7 @@ public class BattleManager : MonoBehaviour
                         DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
                         HeroLeft--;
                         BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
-                        Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(0).gameObject);
+                        Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(1).gameObject);
                         Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
                         ShowBattleLog("모든 Player의 스트레스 증가!");
                         for(int i=0;i<4;i++)
@@ -391,9 +409,11 @@ public class BattleManager : MonoBehaviour
                 else // 죽음의 문턱은 아니다
                 {
                     // 경감률에 따라 데미지 경감
-                    DataManager.Instance.PartyFormation[HeroDmged].heroHp -= randomDmg * 
+                    int realDmg = randomDmg *
                         ((100 - DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100);
-                    ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + randomDmg.ToString() + " 만큼의 데미지");
+                    DataManager.Instance.PartyFormation[HeroDmged].heroHp -= realDmg;
+                    StartCoroutine(ShowDamageText("<color=\"red\">" + realDmg.ToString() + "</color>", false, HeroDmged, false, false));
+                    ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + realDmg.ToString() + " 만큼의 데미지");
                     if (DataManager.Instance.PartyFormation[HeroDmged].heroHp <= 0)
                     {
                         ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 죽음의 문턱 상태입니다.");
@@ -431,6 +451,7 @@ public class BattleManager : MonoBehaviour
             {
                 // 회피 성공
                 ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "가 공격을 회피했습니다. " + HeroDodgeRate.ToString() + " / " + randomDodge.ToString());
+                StartCoroutine(ShowDamageText("회피", false, HeroDmged, false, true));
             }
             else // 맞음
             {
@@ -439,13 +460,27 @@ public class BattleManager : MonoBehaviour
                 {
                     // 치명타 터짐
                     ShowBattleLog("<color=\"red\">치명타!</color>");
+                    Vector3 pos = BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.position
+                        + BattleScene.transform.Find("Enemy" + (CurEnemy + 1).ToString()).transform.position; // 공격자와 피격자의 값의 평균에 위치시킬 예정
+                    pos.x /= 2;
+                    pos.y /= 2; // 평균 값
+                    pos.z = BattleEventCamera.transform.position.z;
+                    BattleEventCamera.transform.position = pos;
+                    BattleEventCamera.SetActive(true);
                     randomDmg *= 2;
+                    moveTime -= 1.5f; // movetoward로 이동중인 친구를 잠시 늦춤
+
+                    StartCoroutine(ShowDamageText("<color=\"yellow\">치명타!</color>", false, HeroDmged, false, true)); // 스트레스 데미지에 대한 텍스트
+
+                    yield return new WaitForSecondsRealtime(1.5f);
+                    BattleEventCamera.SetActive(false);
                 }
 
                 if (DataManager.Instance.EnemyFormation[CurEnemy].enemyClass == EnemyClassName.Debuffer) // 모든 데미지가 스트레스
                 {
                     DataManager.Instance.PartyFormation[HeroDmged].heroStress += randomDmg * 2;
                     ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg * 2).ToString() + " 만큼의 스트레스");
+                    StartCoroutine(ShowDamageText((randomDmg * 2).ToString(), false, HeroDmged, false, false)); // 스트레스 데미지에 대한 텍스트
                     // 붕괴 시 팀원에게 확률적으로 추가 스트레스
                     for (int i = 0; i < 4; i++) 
                     {
@@ -506,7 +541,7 @@ public class BattleManager : MonoBehaviour
                             HeroLeft--;
                             DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
                             BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
-                            Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(0).gameObject);
+                            Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(1).gameObject);
                             Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
                             ShowBattleLog("모든 Player의 스트레스 증가!");
                             for (int i = 0; i < 4; i++)
@@ -546,6 +581,10 @@ public class BattleManager : MonoBehaviour
                 }
                 else
                 {
+                    // 경감률에 따라 데미지 감소
+                    int realDmg = (randomDmg / 2) *
+                            ((100 - DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100);
+
                     if (DataManager.Instance.PartyFormation[HeroDmged].heroHp == 0) // 현재 죽음의 문턱
                     {
                         int randomDeathDoor = DataManager.Instance.PartyFormation[HeroDmged].heroBasicDeathDoor
@@ -565,7 +604,7 @@ public class BattleManager : MonoBehaviour
                             DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
                             HeroLeft--;
                             BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
-                            Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(0).gameObject);
+                            Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(1).gameObject);
                             Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
                             ShowBattleLog("모든 Player의 스트레스 증가!");
                             for (int i = 0; i < 4; i++)
@@ -580,10 +619,8 @@ public class BattleManager : MonoBehaviour
                     }
                     else // 죽음의 문턱은 아니다
                     {
-                        // 경감률에 따라 데미지 감소
-                        DataManager.Instance.PartyFormation[HeroDmged].heroHp -= (randomDmg / 2) * 
-                            ((100 - DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100);
-                        ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg / 2).ToString() + " 만큼의 데미지");
+                        DataManager.Instance.PartyFormation[HeroDmged].heroHp -= realDmg;
+                        ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + realDmg.ToString() + " 만큼의 데미지");
                         if (DataManager.Instance.PartyFormation[HeroDmged].heroHp <= 0)
                         {
                             ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 죽음의 문턱 상태입니다.");
@@ -593,6 +630,7 @@ public class BattleManager : MonoBehaviour
 
                     DataManager.Instance.PartyFormation[HeroDmged].heroStress += randomDmg;
                     ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + randomDmg.ToString() + " 만큼의 스트레스");
+                    StartCoroutine(ShowDamageText("<color=\"red\">" + realDmg.ToString() + "</color>\n" + randomDmg.ToString(), false, HeroDmged, false, false));
 
                     // 붕괴 시 팀원에게 확률적으로 추가 스트레스
                     for (int i = 0; i < 4; i++)
@@ -654,7 +692,7 @@ public class BattleManager : MonoBehaviour
                             DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
                             HeroLeft--;
                             BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
-                            Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(0).gameObject);
+                            Destroy(BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.GetChild(1).gameObject);
                             Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
                             ShowBattleLog("모든 Player의 스트레스 증가!");
                             for (int i = 0; i < 4; i++)
@@ -998,12 +1036,25 @@ public class BattleManager : MonoBehaviour
                             if (critRate >= randomHit) // 크리 확률보다 아래 값, 즉 포함되는 값이 나온다면 크리티컬
                             {
                                 ShowBattleLog("<color=\"red\">치명타!</color>");
-                                dealingDmg *= 2; // 2배의 데미지 적용
+                                //Vector3 pos = BattleScene.transform.Find("Enemy" + (SelectedEnemy + 1).ToString()).transform.position;
+                                Vector3 pos = BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).transform.position
+                                    + BattleScene.transform.Find("Enemy" + (SelectedEnemy + 1).ToString()).transform.position; // 공격자와 피격자의 값의 평균에 위치시킬 예정
+                                pos.x /= 2;
+                                pos.y /= 2; // 평균 값
+                                pos.z = BattleEventCamera.transform.position.z;
+                                BattleEventCamera.transform.position = pos;
+                                BattleEventCamera.SetActive(true);
+                                dealingDmg *= 2;
+                                moveTime -= 1.5f; // movetoward로 이동중인 친구를 잠시 늦춤
+                                StartCoroutine(ShowDamageText("<color=\"yellow\">치명타!</color>", true, SelectedEnemy, false, true));
+                                yield return new WaitForSecondsRealtime(1.5f);
+                                BattleEventCamera.SetActive(false);
                             }
 
                             // 해당되는 적의 체력 감소
                             DataManager.Instance.EnemyFormation[SelectedEnemy].Hp -= dealingDmg;
                             ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "에게 " + dealingDmg.ToString() + "만큼의 데미지");
+                            StartCoroutine(ShowDamageText("<color=\"red\">" + dealingDmg.ToString() + "</color>", true, SelectedEnemy, false, false));
 
                             #region 영웅의 각성 시 효과 발동
                             for (int i=0;i<4;i++)
@@ -1014,6 +1065,7 @@ public class BattleManager : MonoBehaviour
                                     {
                                         ShowBattleLog("Player" + (i + 1).ToString() + "의 <color=\"yellow\">\"긍정적\"</color> 효과 발동!");
                                         ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "에게 " + (dealingDmg / 2).ToString() + "만큼의 추가 데미지");
+                                        StartCoroutine(ShowDamageText("<color=\"red\">" + (dealingDmg / 2).ToString() + "</color>", true, SelectedEnemy, true, false));
                                         DataManager.Instance.EnemyFormation[SelectedEnemy].Hp -= dealingDmg / 2;
                                         break; // 한번만 적용
                                     }
@@ -1023,7 +1075,7 @@ public class BattleManager : MonoBehaviour
                             if (DataManager.Instance.EnemyFormation[SelectedEnemy].Hp <= 0) // 적이 죽었는지 체크
                             {
                                 DataManager.Instance.EnemyFormation[SelectedEnemy].isDead = true;
-                                Destroy(BattleScene.transform.Find("Enemy" + (SelectedEnemy + 1).ToString()).transform.GetChild(0).gameObject);
+                                Destroy(BattleScene.transform.Find("Enemy" + (SelectedEnemy + 1).ToString()).transform.GetChild(1).gameObject);
                                 Instantiate(Tomb, BattleScene.transform.Find("Enemy" + (SelectedEnemy + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0); // 적 프리팹 묘비로 교체
                                 ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "이 공격에 의해 <color=\"red\">사망</color>했습니다.");
                                 BattleCanvas.transform.Find("Enemy" + (SelectedEnemy + 1).ToString()).gameObject.SetActive(false);
@@ -1040,6 +1092,7 @@ public class BattleManager : MonoBehaviour
                         {
                             // 로그 출력
                             ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "가 공격을 회피했습니다. " + totalRate.ToString() + " / " + randomHit.ToString());
+                            StartCoroutine(ShowDamageText("회피", true, SelectedEnemy, false, true));
                             // 후 턴 넘김
                             break;
                         }
@@ -1094,12 +1147,25 @@ public class BattleManager : MonoBehaviour
                                 if (critRate >= randomHit) // 크리 확률보다 아래 값, 즉 포함되는 값이 나온다면 크리티컬
                                 {
                                     ShowBattleLog("<color=\"red\">치명타!</color>");
-                                    dealingDmg *= 2; // 2배의 데미지 적용
+                                    //Vector3 pos = BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform.position;
+                                    Vector3 pos = BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).transform.position
+                                    + BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform.position; // 공격자와 피격자의 값의 평균에 위치시킬 예정
+                                    pos.x /= 2;
+                                    pos.y /= 2; // 평균 값
+                                    pos.z = BattleEventCamera.transform.position.z;
+                                    BattleEventCamera.transform.position = pos;
+                                    BattleEventCamera.SetActive(true);
+                                    dealingDmg *= 2;
+                                    moveTime -= 1.5f; // movetoward로 이동중인 친구를 잠시 늦춤
+                                    StartCoroutine(ShowDamageText("<color=\"yellow\">치명타!</color>", true, i, false, true));
+                                    yield return new WaitForSecondsRealtime(1.5f);
+                                    BattleEventCamera.SetActive(false);
                                 }
 
                                 // 해당되는 적의 체력 감소
                                 DataManager.Instance.EnemyFormation[i].Hp -= dealingDmg;
                                 ShowBattleLog("Enemy" + (i + 1).ToString() + "에게 " + dealingDmg.ToString() + "만큼의 데미지");
+                                StartCoroutine(ShowDamageText("<color=\"red\">" + dealingDmg.ToString() + "</color>", true, i, false, false));
                                 #region 영웅의 각성 시 효과 발동
                                 for (int j = 0; j < 4; j++)
                                 {
@@ -1108,7 +1174,8 @@ public class BattleManager : MonoBehaviour
                                         if (UnityEngine.Random.Range(0, 100) < 40) // 20%
                                         {
                                             ShowBattleLog("Player" + (j + 1).ToString() + "의 <color=\"yellow\">\"긍정적\"</color> 효과 발동!");
-                                            ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "에게 " + (dealingDmg / 2).ToString() + "만큼의 추가 데미지");
+                                            ShowBattleLog("Enemy" + (i + 1).ToString() + "에게 " + (dealingDmg / 2).ToString() + "만큼의 추가 데미지");
+                                            StartCoroutine(ShowDamageText("<color=\"red\">" + (dealingDmg / 2).ToString() + "</color>", true, i, true, false));
                                             DataManager.Instance.EnemyFormation[i].Hp -= dealingDmg / 2;
                                             break; // 한번만 적용
                                         }
@@ -1119,7 +1186,7 @@ public class BattleManager : MonoBehaviour
                                 if (DataManager.Instance.EnemyFormation[i].Hp <= 0) // 적이 죽었는지 체크
                                 {
                                     DataManager.Instance.EnemyFormation[i].isDead = true;
-                                    Destroy(BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform.GetChild(0).gameObject);
+                                    Destroy(BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform.GetChild(1).gameObject);
                                     Instantiate(Tomb, BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0); // 적 프리팹 묘비로 교체
                                     ShowBattleLog("Enemy" + (i + 1).ToString() + "이 공격에 의해 <color=\"red\">사망</color>했습니다.");
                                     BattleCanvas.transform.Find("Enemy" + (i + 1).ToString()).gameObject.SetActive(false);
@@ -1135,6 +1202,7 @@ public class BattleManager : MonoBehaviour
                             {
                                 // 로그 출력
                                 ShowBattleLog("Enemy" + (i + 1).ToString() + "가 공격을 회피했습니다. " + totalRate.ToString() + " / " + randomHit.ToString());
+                                StartCoroutine(ShowDamageText("회피", true, i, false, true));
                                 // 후 턴 넘김
                             }
                         }
@@ -1185,13 +1253,25 @@ public class BattleManager : MonoBehaviour
                                 if (critRate >= randomHit) // 크리 확률보다 아래 값, 즉 포함되는 값이 나온다면 크리티컬
                                 {
                                     ShowBattleLog("<color=\"red\">치명타!</color>");
-                                    dealingDmg *= 2; // 2배의 데미지 적용
+                                    //Vector3 pos = BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform.position;
+                                    Vector3 pos = BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).transform.position
+                                    + BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform.position; // 공격자와 피격자의 값의 평균에 위치시킬 예정
+                                    pos.x /= 2;
+                                    pos.y /= 2; // 평균 값
+                                    pos.z = BattleEventCamera.transform.position.z;
+                                    BattleEventCamera.transform.position = pos;
+                                    BattleEventCamera.SetActive(true);
+                                    dealingDmg *= 2;
+                                    moveTime -= 1.5f; // movetoward로 이동중인 친구를 잠시 늦춤
+                                    StartCoroutine(ShowDamageText("<color=\"yellow\">치명타!</color>", true, i, false, true));
+                                    yield return new WaitForSecondsRealtime(1.5f);
+                                    BattleEventCamera.SetActive(false);
                                 }
 
                                 // 해당되는 적의 체력 감소
                                 DataManager.Instance.EnemyFormation[i].Hp -= dealingDmg;
-
                                 ShowBattleLog("Enemy" + (i + 1).ToString() + "에게 " + dealingDmg.ToString() + "만큼의 데미지");
+                                StartCoroutine(ShowDamageText("<color=\"red\">" + dealingDmg.ToString() + "</color>", true, i, false, false));
                                 #region 영웅의 각성 시 효과 발동
                                 for (int j = 0; j < 4; j++)
                                 {
@@ -1201,6 +1281,7 @@ public class BattleManager : MonoBehaviour
                                         {
                                             ShowBattleLog("Player" + (j + 1).ToString() + "의 <color=\"yellow\">\"긍정적\"</color> 효과 발동!");
                                             ShowBattleLog("Enemy" + (SelectedEnemy + 1).ToString() + "에게 " + (dealingDmg / 2).ToString() + "만큼의 추가 데미지");
+                                            StartCoroutine(ShowDamageText("<color=\"red\">" + (dealingDmg / 2).ToString() + "</color>", true, i, true, false));
                                             DataManager.Instance.EnemyFormation[i].Hp -= dealingDmg / 2;
                                             break; // 한번만 적용
                                         }
@@ -1211,7 +1292,7 @@ public class BattleManager : MonoBehaviour
                                 if (DataManager.Instance.EnemyFormation[i].Hp <= 0) // 적이 죽었는지 체크
                                 {
                                     DataManager.Instance.EnemyFormation[i].isDead = true;
-                                    Destroy(BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform.GetChild(0).gameObject);
+                                    Destroy(BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform.GetChild(1).gameObject);
                                     Instantiate(Tomb, BattleScene.transform.Find("Enemy" + (i + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0); // 적 프리팹 묘비로 교체
                                     ShowBattleLog("Enemy" + (i + 1).ToString() + "이 공격에 의해 <color=\"red\">사망</color>했습니다.");
                                     BattleCanvas.transform.Find("Enemy" + (i + 1).ToString()).gameObject.SetActive(false);
@@ -1227,6 +1308,7 @@ public class BattleManager : MonoBehaviour
                             {
                                 // 로그 출력
                                 ShowBattleLog("Enemy" + (i + 1).ToString() + "가 공격을 회피했습니다. " + totalRate.ToString() + " / " + randomHit.ToString());
+                                StartCoroutine(ShowDamageText("회피", true, i, false, true));
                                 // 후 턴 넘김
                             }
                         }
@@ -1661,13 +1743,13 @@ public class BattleManager : MonoBehaviour
         GameObject Hero;
 
         if (GameObject.Find("BattleScene").transform.Find("Player1").childCount != 0)
-            Destroy(GameObject.Find("BattleScene").transform.Find("Player1").GetChild(0).gameObject);
+            Destroy(GameObject.Find("BattleScene").transform.Find("Player1").GetChild(1).gameObject);
         if (GameObject.Find("BattleScene").transform.Find("Player2").childCount != 0)
-            Destroy(GameObject.Find("BattleScene").transform.Find("Player2").GetChild(0).gameObject);
+            Destroy(GameObject.Find("BattleScene").transform.Find("Player2").GetChild(1).gameObject);
         if (GameObject.Find("BattleScene").transform.Find("Player3").childCount != 0)
-            Destroy(GameObject.Find("BattleScene").transform.Find("Player3").GetChild(0).gameObject);
+            Destroy(GameObject.Find("BattleScene").transform.Find("Player3").GetChild(1).gameObject);
         if (GameObject.Find("BattleScene").transform.Find("Player4").childCount != 0)
-            Destroy(GameObject.Find("BattleScene").transform.Find("Player4").GetChild(0).gameObject);
+            Destroy(GameObject.Find("BattleScene").transform.Find("Player4").GetChild(1).gameObject);
 
         if (DataManager.Instance.PartyFormation[0].isDead)
         {
@@ -1803,13 +1885,13 @@ public class BattleManager : MonoBehaviour
 
         // DD -> 적 생성 로직 만들기
         if (GameObject.Find("BattleScene").transform.Find("Enemy1").childCount != 0)
-            Destroy(GameObject.Find("BattleScene").transform.Find("Enemy1").GetChild(0).gameObject);
+            Destroy(GameObject.Find("BattleScene").transform.Find("Enemy1").GetChild(1).gameObject);
         if (GameObject.Find("BattleScene").transform.Find("Enemy2").childCount != 0)
-            Destroy(GameObject.Find("BattleScene").transform.Find("Enemy2").GetChild(0).gameObject);
+            Destroy(GameObject.Find("BattleScene").transform.Find("Enemy2").GetChild(1).gameObject);
         if (GameObject.Find("BattleScene").transform.Find("Enemy3").childCount != 0)
-            Destroy(GameObject.Find("BattleScene").transform.Find("Enemy3").GetChild(0).gameObject);
+            Destroy(GameObject.Find("BattleScene").transform.Find("Enemy3").GetChild(1).gameObject);
         if (GameObject.Find("BattleScene").transform.Find("Enemy4").childCount != 0)
-            Destroy(GameObject.Find("BattleScene").transform.Find("Enemy4").GetChild(0).gameObject);
+            Destroy(GameObject.Find("BattleScene").transform.Find("Enemy4").GetChild(1).gameObject);
 
         int upgradeCount = DataManager.Instance.StageLevel;
         DataManager.Instance.EnemyFormation = new BasicEnemySetting[4] { null, null, null, null };
@@ -2032,7 +2114,7 @@ public class BattleManager : MonoBehaviour
                 HeroLeft--;
                 DataManager.Instance.PartyFormation[HeroNum].isDead = true;
                 BattleCanvas.transform.Find("Player" + (HeroNum + 1).ToString()).gameObject.SetActive(false);
-                Destroy(BattleScene.transform.Find("Player" + (HeroNum + 1).ToString()).transform.GetChild(0).gameObject);
+                Destroy(BattleScene.transform.Find("Player" + (HeroNum + 1).ToString()).transform.GetChild(1).gameObject);
                 Instantiate(Tomb, BattleScene.transform.Find("Player" + (HeroNum + 1).ToString()).transform).transform.localPosition = new Vector3(0, 0, 0);
                 ShowBattleLog("모든 Player의 스트레스 증가!");
                 yield return new WaitForSecondsRealtime(1.5f);
@@ -2070,6 +2152,75 @@ public class BattleManager : MonoBehaviour
                 DataManager.Instance.PartyFormation[HeroNum].Stress = Stress.Positive;
                 ShowBattleLog("Player" + (HeroNum + 1).ToString() + " : <color=\"yellow\">긍정적!</color>");
             }
+        }
+    }
+
+    IEnumerator ShowDamageText(string text, bool isEnemy, int CharacterNum, bool isAdditionalDmg, bool isJustText)
+    {
+        yield return null;
+        if(isEnemy) // 맞은게 적이다
+        {
+            GameObject DmgText = Instantiate(DamageTextPrefab, BattleScene.transform.Find("Enemy" + (CharacterNum + 1).ToString()).transform);
+            DmgText.transform.localPosition = Vector3.zero;
+            DmgText.transform.Find("Canvas_Dmg").transform.Find("DmgText").GetComponent<TextMeshProUGUI>().text = text;
+            DmgText.transform.localPosition = Vector3.zero;
+            if(isAdditionalDmg)
+            {
+                DmgText.transform.localPosition += new Vector3(-0.8f, 1.5f, 0);
+            }
+            else
+            {
+                if (isJustText)
+                {
+                    DmgText.transform.localPosition += new Vector3(-0.8f, 1f, 0);
+                }
+                else
+                {
+                    DmgText.transform.localPosition += new Vector3(-0.8f, 0.5f, 0);
+                }
+            }
+            StartCoroutine(MoveDamageText(DmgText));
+        }
+        else
+        {
+            GameObject DmgText = Instantiate(DamageTextPrefab, BattleScene.transform.Find("Player" + (CharacterNum + 1).ToString()).transform);
+            DmgText.transform.localPosition = Vector3.zero;
+            DmgText.transform.Find("Canvas_Dmg").transform.Find("DmgText").GetComponent<TextMeshProUGUI>().text = text;
+            DmgText.transform.localPosition = Vector3.zero;
+            if (isAdditionalDmg)
+            {
+                DmgText.transform.localPosition += new Vector3(0.8f, 1.5f, 0);
+            }
+            else
+            {
+                if (isJustText)
+                {
+                    DmgText.transform.localPosition += new Vector3(0.8f, 1f, 0);
+                }
+                else
+                {
+                    DmgText.transform.localPosition += new Vector3(0.8f, 0.5f, 0);
+                }
+            }
+            StartCoroutine(MoveDamageText(DmgText));
+        }
+    }
+
+    IEnumerator MoveDamageText(GameObject DmgText) 
+    {
+        float deltaT = 0f;
+        Color c;
+        while (deltaT < 1f)
+        {
+            yield return null;
+            c = DmgText.transform.Find("Canvas_Dmg").transform.Find("DmgText").GetComponent<TextMeshProUGUI>().color;
+            c.a -= Time.unscaledDeltaTime;
+            if(c.a <= 0f)
+            {
+                Destroy(DmgText);
+                break;
+            }
+            DmgText.transform.Find("Canvas_Dmg").transform.Find("DmgText").GetComponent<TextMeshProUGUI>().color = c; // 지속적으로 알파값을 줄여나감
         }
     }
 }
