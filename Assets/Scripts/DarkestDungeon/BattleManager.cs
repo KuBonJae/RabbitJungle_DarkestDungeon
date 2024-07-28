@@ -237,24 +237,24 @@ public class BattleManager : MonoBehaviour
                             switch (DataManager.Instance.PartyFormation[SpeedOrder.Peek().Item1].heroClass)
                             {
                                 case ClassName.Melee:
-                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "ATK";
-                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "ATK\nFront Double";
+                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "공격";
+                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "E1, E2\n동시 공격";
                                     break;
                                 case ClassName.Marksman:
-                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "ATK";
-                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "ATK\nBack Double";
+                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "공격";
+                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "E3, E4\n동시 공격";
                                     break;
                                 case ClassName.Tanker:
-                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "ATK";
-                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "Protect Buff";
+                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "공격";
+                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "데미지 경감\n버프";
                                     break;
                                 case ClassName.Healer:
-                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "ATK";
-                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "Heal";
+                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "공격";
+                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "치유";
                                     break;
                                 case ClassName.Supporter:
-                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "ATK";
-                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "Stress\nDown";
+                                    Skills[0].GetComponentInChildren<TextMeshProUGUI>().text = "공격";
+                                    Skills[1].GetComponentInChildren<TextMeshProUGUI>().text = "스트레스\n감소";
                                     break;
                             }
                             StartCoroutine("BattlePhase_Hero");
