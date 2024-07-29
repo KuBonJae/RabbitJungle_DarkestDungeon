@@ -32,6 +32,7 @@ public class BattleManager : MonoBehaviour
     private int EnemyLeft = 4;
     private int HeroLeft = 4;
     private int TurnCount = 0;
+    private int NamedEnemyNum = 0;
 
     private int CurHero;
     private int CurEnemy;
@@ -64,13 +65,19 @@ public class BattleManager : MonoBehaviour
     private string[] CorruptionSerifu = new string[4] { "꼴 좋다!", "우린 망했어", "멍청아!", "장난해?" };
     private string[] CourageSerifu = new string[4] { "힘 내!", "할 수 있어", "도와줄게!", "아직이야!" };
 
+    WaitForSecondsRealtime waitForAttack = new WaitForSecondsRealtime(1f);
+    WaitForSecondsRealtime waitForCritical = new WaitForSecondsRealtime(1f);
+    WaitForSecondsRealtime waitForSerifu = new WaitForSecondsRealtime(2f);
+    WaitForSecondsRealtime waitForCorruption = new WaitForSecondsRealtime(2.5f);
+    WaitForSecondsRealtime waitForTurnEnd = new WaitForSecondsRealtime(2f);
+
     // Start is called before the first frame update
     void Start()
     {
         BattleEventCamera = GameObject.Find("Camera").transform.Find("BattleEventCam").gameObject;
 
         EnemyLeft = 4;
-        //HeroLeft = 4;
+        NamedEnemyNum = 0;
         SpeedOrder = new PriorityQueue(8);
         firstBtnClicked = false;
         secondBtnClicked = false;
@@ -93,8 +100,11 @@ public class BattleManager : MonoBehaviour
             }
             else if(DataManager.Instance.PartyFormation[i].Stress == Stress.Positive) // 스테이지 넘어갈 때 긍정적이면 적용될 일?
             {
-                if (DataManager.Instance.PartyFormation[i].heroStress >= 150) // 스트레스가 100 이상이면
+                if (DataManager.Instance.PartyFormation[i].heroStress >= 150) // 스트레스가 150 이상이면
+                {
+                    DataManager.Instance.PartyFormation[i].heroStress = 0; // 스트레스 초기화
                     DataManager.Instance.PartyFormation[i].Stress = Stress.Default; // 영웅의 각성 초기화 시켜버리기
+                }
                 else // 스트레스 관리를 잘 했다면
                 {
                     for(int j=0;j<4;j++)
@@ -118,6 +128,17 @@ public class BattleManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(BattleCanvas.activeSelf && Input.GetKeyDown(KeyCode.Z))
+        {
+            OnFirstSkillBtnClicked(Skills[0].GetComponent<Button>());
+            Skills[0].GetComponent<Button>().Select();
+        }
+        if(BattleCanvas.activeSelf && Input.GetKeyDown(KeyCode.X))
+        {
+            OnSecondSkillBtnClicked(Skills[1].GetComponent<Button>());
+            Skills[1].GetComponent<Button>().Select();
+        }
+
         if (BattleCanvas.activeSelf && EnemyLeft == 0) // 배틀 진행 중인데 남은 적이 0이면 배틀을 종료
         {
             // 배틀 페이즈를 종료하며, 보상을 획득하고 계속 진행함
@@ -152,10 +173,16 @@ public class BattleManager : MonoBehaviour
                 DataManager.Instance.tempStats[i] = new Stat(0, 0, 0, 0, 0, 0, 0); // 임시 버프 초기화
             }
 
-            int coinAmount = UnityEngine.Random.Range(25 * 4, 100 * 4 + 1);
+            int coinAmount = 200 + UnityEngine.Random.Range(150, 300 + 1) + NamedEnemyNum * 100; // 최소 300, 최대 500 + 네임드몹 수 * 100;
+            NamedEnemyNum = 0; // 리셋
             DataManager.Instance.coin += coinAmount;
-            //Debug.Log("코인 " + coinAmount.ToString() + " 획득");
-            DataManager.Instance.announcement = "코인 " + coinAmount.ToString() + " 획득";
+            string coinText = "코인 " + coinAmount.ToString() + " 획득!";
+            if(UnityEngine.Random.Range(0, 100) < 5) // 5% 확률로
+            {
+                DataManager.Instance.coin += coinAmount; // 코인 한번 더 제공
+                coinText = "코인 보너스! X 2배!\n코인 " + (coinAmount * 2).ToString() + " 획득!";
+            }
+            DataManager.Instance.announcement = coinText;
             DataManager.Instance.makeAnnouncement = true;
             BattleCanvas.SetActive(false);
             Time.timeScale = 1f;
@@ -197,6 +224,8 @@ public class BattleManager : MonoBehaviour
 
         if (DataManager.Instance.battle_ing) // 현재 배틀 진행중
         {
+            Time.timeScale = 0f; // 전투중일땐 항시 0으로 유지
+
             if (SpeedOrder.Count == 0 && !shouldCheckingOrder)
                 TurnEnd = true;
             else
@@ -271,7 +300,7 @@ public class BattleManager : MonoBehaviour
 
         if (moveObject != null)
         {
-            if(moveTime < 2f)
+            if(moveTime < 1.2f)
             {
                 moveObject.transform.localPosition = Vector3.MoveTowards(moveObject.transform.localPosition, destination, Time.unscaledDeltaTime * 75);
                 moveTime += Time.unscaledDeltaTime;
@@ -280,7 +309,7 @@ public class BattleManager : MonoBehaviour
             {
                 moveObject.transform.localPosition = Vector3.MoveTowards(moveObject.transform.localPosition, origin, Time.unscaledDeltaTime * 75);
                 moveTime += Time.unscaledDeltaTime;
-                if (moveObject.transform.localPosition == origin || moveTime >= 5f)
+                if (moveObject.transform.localPosition == origin || moveTime >= 3f)
                 {
                     moveTime = 0f;
                     moveObject = null;
@@ -343,7 +372,8 @@ public class BattleManager : MonoBehaviour
             destination = new Vector3(-1, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.localPosition.y, 0);
             moveObject = BattleScene.transform.Find("Enemy" + (CurEnemy + 1).ToString()).gameObject;
             origin = moveObject.transform.localPosition;
-            yield return new WaitForSecondsRealtime(2f);
+            //yield return new WaitForSecondsRealtime(2f);
+            yield return waitForAttack;//new WaitForSecondsRealtime(2f); // 시간 줄이기
             // 아군의 회피율을 확인해서 회피 확인
             int HeroDodgeRate = DataManager.Instance.PartyFormation[HeroDmged].heroBasicDodgeRate
                 + (DataManager.Instance.tempStats[HeroDmged] != null ? DataManager.Instance.tempStats[HeroDmged].tempDodge : 0);
@@ -369,9 +399,10 @@ public class BattleManager : MonoBehaviour
                     BattleEventCamera.transform.position = pos;
                     BattleEventCamera.SetActive(true);
                     randomDmg *= 2;
-                    moveTime -= 1.5f; // movetoward로 이동중인 친구를 잠시 늦춤
+                    moveTime -= 1f; // movetoward로 이동중인 친구를 잠시 늦춤
                     StartCoroutine(ShowDamageText("<color=\"yellow\">치명타!</color>", false, HeroDmged, false, true));
-                    yield return new WaitForSecondsRealtime(1.5f);
+                    //yield return new WaitForSecondsRealtime(1.5f);
+                    yield return waitForCritical;
                     BattleEventCamera.SetActive(false);
                 }
                 if (DataManager.Instance.PartyFormation[HeroDmged].heroHp == 0) // 현재 죽음의 문턱
@@ -450,7 +481,8 @@ public class BattleManager : MonoBehaviour
             destination = new Vector3(-1, BattleScene.transform.Find("Player" + (HeroDmged + 1).ToString()).transform.localPosition.y, 0);
             moveObject = BattleScene.transform.Find("Enemy" + (CurEnemy + 1).ToString()).gameObject;
             origin = moveObject.transform.localPosition;
-            yield return new WaitForSecondsRealtime(2f);
+            //yield return new WaitForSecondsRealtime(2f);
+            yield return waitForAttack;
 
             // 아군의 회피율을 확인해서 회피 확인
             int HeroDodgeRate = DataManager.Instance.PartyFormation[HeroDmged].heroBasicDodgeRate
@@ -477,11 +509,12 @@ public class BattleManager : MonoBehaviour
                     BattleEventCamera.transform.position = pos;
                     BattleEventCamera.SetActive(true);
                     randomDmg *= 2;
-                    moveTime -= 1.5f; // movetoward로 이동중인 친구를 잠시 늦춤
+                    moveTime -= 1f; // movetoward로 이동중인 친구를 잠시 늦춤
 
                     StartCoroutine(ShowDamageText("<color=\"yellow\">치명타!</color>", false, HeroDmged, false, true)); // 스트레스 데미지에 대한 텍스트
 
-                    yield return new WaitForSecondsRealtime(1.5f);
+                    //yield return new WaitForSecondsRealtime(1.5f);
+                    yield return waitForCritical;
                     BattleEventCamera.SetActive(false);
                 }
 
@@ -507,7 +540,8 @@ public class BattleManager : MonoBehaviour
                                 Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = CorruptionSerifu[UnityEngine.Random.Range(0, 4)];
                                 Serifu[i].transform.Find("Image").gameObject.SetActive(true);
 
-                                yield return new WaitForSecondsRealtime(2.5f);
+                                //yield return new WaitForSecondsRealtime(2.5f);
+                                yield return waitForSerifu;//new WaitForSecondsRealtime(2.5f);
                                 Serifu[i].transform.Find("Image").gameObject.SetActive(false);
                                 break;
                             }
@@ -533,7 +567,8 @@ public class BattleManager : MonoBehaviour
                                 Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = CourageSerifu[UnityEngine.Random.Range(0, 4)];
                                 Serifu[i].transform.Find("Image").gameObject.SetActive(true);
 
-                                yield return new WaitForSecondsRealtime(2.5f);
+                                //yield return new WaitForSecondsRealtime(2.5f);
+                                yield return waitForSerifu;//new WaitForSecondsRealtime(2.5f);
                                 Serifu[i].transform.Find("Image").gameObject.SetActive(false);
                                 break;
                             }
@@ -574,7 +609,8 @@ public class BattleManager : MonoBehaviour
                     {
                         ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "가 의지를 시험받고 있습니다.");
 
-                        yield return new WaitForSecondsRealtime(3f);
+                        //yield return new WaitForSecondsRealtime(3f);
+                        yield return waitForCorruption;
 
                         if (UnityEngine.Random.Range(1, 101) > 25)
                         {
@@ -662,7 +698,8 @@ public class BattleManager : MonoBehaviour
                                 Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = CorruptionSerifu[UnityEngine.Random.Range(0, 4)];
                                 Serifu[i].transform.Find("Image").gameObject.SetActive(true);
 
-                                yield return new WaitForSecondsRealtime(2.5f);
+                                //yield return new WaitForSecondsRealtime(2.5f);
+                                yield return waitForSerifu;
                                 Serifu[i].transform.Find("Image").gameObject.SetActive(false);
                                 break;
                             }
@@ -688,7 +725,8 @@ public class BattleManager : MonoBehaviour
                                 Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = CourageSerifu[UnityEngine.Random.Range(0, 4)];
                                 Serifu[i].transform.Find("Image").gameObject.SetActive(true);
 
-                                yield return new WaitForSecondsRealtime(2.5f);
+                                //yield return new WaitForSecondsRealtime(2.5f);
+                                yield return waitForSerifu;
                                 Serifu[i].transform.Find("Image").gameObject.SetActive(false);
                                 break;
                             }
@@ -729,7 +767,8 @@ public class BattleManager : MonoBehaviour
                     {
                         ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "가 의지를 시험받고 있습니다.");
 
-                        yield return new WaitForSecondsRealtime(3f);
+                        //yield return new WaitForSecondsRealtime(3f);
+                        yield return waitForCorruption;
 
                         if (UnityEngine.Random.Range(1, 101) > 25)
                         {
@@ -748,7 +787,8 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        yield return new WaitForSecondsRealtime(3f);
+        //yield return new WaitForSecondsRealtime(3f);
+        yield return waitForTurnEnd;//new WaitForSecondsRealtime(3f);
         SpeedOrder.Dequeue();
         nextBattleOrder = true;
     }
@@ -1004,7 +1044,8 @@ public class BattleManager : MonoBehaviour
                                 Serifu[CurHero].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = "안해 안해~";
                                 Serifu[CurHero].transform.Find("Image").gameObject.SetActive(true);
 
-                                yield return new WaitForSecondsRealtime(2f);
+                                //yield return new WaitForSecondsRealtime(2f);
+                                yield return waitForSerifu;
                                 Serifu[CurHero].transform.Find("Image").gameObject.SetActive(false);;
 
                                 break;
@@ -1025,7 +1066,8 @@ public class BattleManager : MonoBehaviour
                         destination = new Vector3(1, BattleScene.transform.Find("Enemy" + (SelectedEnemy + 1).ToString()).transform.localPosition.y, 0);
                         moveObject = BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).gameObject;
                         origin = moveObject.transform.localPosition;
-                        yield return new WaitForSecondsRealtime(2f);
+                        //yield return new WaitForSecondsRealtime(2f);
+                        yield return waitForAttack;
 
                         int dodgeRate = DataManager.Instance.EnemyFormation[SelectedEnemy].BasicDodgeRate; // 해당 적의 회피율 가져오기
                         int hitRate = DataManager.Instance.PartyFormation[CurHero].heroBasicAccuracy; // 아군의 명중률 가져오기
@@ -1059,9 +1101,10 @@ public class BattleManager : MonoBehaviour
                                 BattleEventCamera.transform.position = pos;
                                 BattleEventCamera.SetActive(true);
                                 dealingDmg *= 2;
-                                moveTime -= 1.5f; // movetoward로 이동중인 친구를 잠시 늦춤
+                                moveTime -= 1f; // movetoward로 이동중인 친구를 잠시 늦춤
                                 StartCoroutine(ShowDamageText("<color=\"yellow\">치명타!</color>", true, SelectedEnemy, false, true));
-                                yield return new WaitForSecondsRealtime(1.5f);
+                                //yield return new WaitForSecondsRealtime(1.5f);
+                                yield return waitForCritical;
                                 BattleEventCamera.SetActive(false);
                             }
 
@@ -1123,7 +1166,8 @@ public class BattleManager : MonoBehaviour
                         destination = new Vector3(1, -1.5f, 0);
                         moveObject = BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).gameObject;
                         origin = moveObject.transform.localPosition;
-                        yield return new WaitForSecondsRealtime(2f);
+                        //yield return new WaitForSecondsRealtime(2f);
+                        yield return waitForAttack;
 
                         for (int i = 0; i < 2; i++)
                         {
@@ -1170,9 +1214,10 @@ public class BattleManager : MonoBehaviour
                                     BattleEventCamera.transform.position = pos;
                                     BattleEventCamera.SetActive(true);
                                     dealingDmg *= 2;
-                                    moveTime -= 1.5f; // movetoward로 이동중인 친구를 잠시 늦춤
+                                    moveTime -= 1f; // movetoward로 이동중인 친구를 잠시 늦춤
                                     StartCoroutine(ShowDamageText("<color=\"yellow\">치명타!</color>", true, i, false, true));
-                                    yield return new WaitForSecondsRealtime(1.5f);
+                                    //yield return new WaitForSecondsRealtime(1.5f);
+                                    yield return waitForCritical;
                                     BattleEventCamera.SetActive(false);
                                 }
 
@@ -1229,7 +1274,8 @@ public class BattleManager : MonoBehaviour
                         destination = new Vector3(1, 4.5f, 0);
                         moveObject = BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).gameObject;
                         origin = moveObject.transform.localPosition;
-                        yield return new WaitForSecondsRealtime(2f);
+                        //yield return new WaitForSecondsRealtime(2f);
+                        yield return waitForAttack;
 
                         for (int i = 2; i < 4; i++)
                         {
@@ -1276,9 +1322,10 @@ public class BattleManager : MonoBehaviour
                                     BattleEventCamera.transform.position = pos;
                                     BattleEventCamera.SetActive(true);
                                     dealingDmg *= 2;
-                                    moveTime -= 1.5f; // movetoward로 이동중인 친구를 잠시 늦춤
+                                    moveTime -= 1f; // movetoward로 이동중인 친구를 잠시 늦춤
                                     StartCoroutine(ShowDamageText("<color=\"yellow\">치명타!</color>", true, i, false, true));
-                                    yield return new WaitForSecondsRealtime(1.5f);
+                                    //yield return new WaitForSecondsRealtime(1.5f);
+                                    yield return waitForCritical;
                                     BattleEventCamera.SetActive(false);
                                 }
 
@@ -1413,7 +1460,8 @@ public class BattleManager : MonoBehaviour
                                                 Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = "필요 없어!";
                                                 Serifu[i].transform.Find("Image").gameObject.SetActive(true);
 
-                                                yield return new WaitForSecondsRealtime(2f);
+                                                //yield return new WaitForSecondsRealtime(2f);
+                                                yield return waitForSerifu;
                                                 Serifu[i].transform.Find("Image").gameObject.SetActive(false);
                                                 break;
                                             }
@@ -1425,7 +1473,8 @@ public class BattleManager : MonoBehaviour
                                                 Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = "그건 내꺼야!";
                                                 Serifu[i].transform.Find("Image").gameObject.SetActive(true);
 
-                                                yield return new WaitForSecondsRealtime(2f);
+                                                //yield return new WaitForSecondsRealtime(2f);
+                                                yield return waitForSerifu;
                                                 Serifu[i].transform.Find("Image").gameObject.SetActive(false);
                                                 break;
                                             }
@@ -1577,7 +1626,8 @@ public class BattleManager : MonoBehaviour
                                                 Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = "필요 없어!";
                                                 Serifu[i].transform.Find("Image").gameObject.SetActive(true);
 
-                                                yield return new WaitForSecondsRealtime(2f);
+                                                //yield return new WaitForSecondsRealtime(2f);
+                                                yield return waitForSerifu;
                                                 Serifu[i].transform.Find("Image").gameObject.SetActive(false);
                                                 break;
                                             }
@@ -1589,7 +1639,8 @@ public class BattleManager : MonoBehaviour
                                                 Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().text = "그건 내꺼야!";
                                                 Serifu[i].transform.Find("Image").gameObject.SetActive(true);
 
-                                                yield return new WaitForSecondsRealtime(2f);
+                                                //yield return new WaitForSecondsRealtime(2f);
+                                                yield return waitForSerifu;
                                                 Serifu[i].transform.Find("Image").gameObject.SetActive(false);
                                                 break;
                                             }
@@ -1693,7 +1744,9 @@ public class BattleManager : MonoBehaviour
                     continue;
             }
 
-            yield return new WaitForSecondsRealtime(2f);
+            //yield return new WaitForSecondsRealtime(2f);
+            yield return waitForTurnEnd;
+            EventSystem.current.GetComponent<EventSystem>().SetSelectedGameObject(null);
             BattleScene.transform.Find("Player" + (CurHero + 1).ToString()).Find("Indicator").gameObject.SetActive(false);
             SpeedOrder.Dequeue();
             nextBattleOrder = true;
@@ -1709,10 +1762,6 @@ public class BattleManager : MonoBehaviour
         Time.timeScale = 0f;
         battleStart = true;
         StartCoroutine("SetNextBattleOrder");
-        //yield return new WaitForSeconds(0.5f);
-        //nextBattleOrder = true;
-        //yield return new WaitForSeconds(0.5f)
-        //DataManager.Instance.battle_ing = true;
     }
     
     IEnumerator SetNextBattleOrder()
@@ -1945,6 +1994,7 @@ public class BattleManager : MonoBehaviour
                 NamedEnemySetting NamedEnemy = new NamedEnemySetting(randomUpgrade);
                 DataManager.Instance.EnemyFormation[i] = NamedEnemy;
                 Instantiate(EnemyPrefabs[3], GameObject.Find("BattleScene").transform.Find("Enemy" + (i + 1).ToString())).transform.localPosition = new Vector3(0, 0, 0);
+                NamedEnemyNum++;
             }
         }
 
@@ -2157,7 +2207,8 @@ public class BattleManager : MonoBehaviour
             {
                 ShowBattleLog("Player" + (HeroNum + 1).ToString() + "가 의지를 시험받고 있습니다.");
 
-                yield return new WaitForSecondsRealtime(3f);
+                //yield return new WaitForSecondsRealtime(3f);
+                yield return waitForCorruption;
 
                 if (UnityEngine.Random.Range(1, 101) > 25)
                 {

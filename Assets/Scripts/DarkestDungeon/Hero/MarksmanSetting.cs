@@ -6,15 +6,15 @@ public class MarksmanSetting : BasicHeroSetting
 {
     public MarksmanSetting()
     {
-        heroMaxHP -= 3;
-        heroHp -= 3;
+        heroMaxHP -= 4;
+        heroHp -= 4;
         //heroStress = 0;
-        heroMinDamage += 1;
-        heroMaxDamage += 3;
-        heroBasicSpeed -= 2;
-        heroBasicDodgeRate -= 5;
+        heroMinDamage += 2;
+        heroMaxDamage += 4;
+        heroBasicSpeed -= 1;
+        heroBasicDodgeRate -= 2;
         heroClass = ClassName.Marksman;
         heroBasicAccuracy = 100;
-        heroBasicCriticalHit += 5;
+        heroBasicCriticalHit += 15;
     }
 }

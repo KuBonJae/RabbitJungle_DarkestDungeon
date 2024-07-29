@@ -48,16 +48,24 @@ public class GameManager : MonoBehaviour
     public void ResumeGame()
     {
         pauseMenuUI.SetActive(false);
-        if (Time.timeScale == 0f)
-            Time.timeScale = 0f;
+        //if (Time.timeScale != 0f)
+        if (!DataManager.Instance.battle_ing && !GameObject.Find("Canvas").transform.Find("CardSelect").gameObject.activeSelf)
+            Time.timeScale = 1f;
         else
-            Time.timeScale = 1f; // 게임 재개
+            Time.timeScale = 0f; // 게임 재개
         isPaused = false;
     }
 
     public void RestartGame()
     {
         Time.timeScale = 1f; // 시간 스케일을 원래대로 되돌립니다.
+
+        DataManager.Instance.battle_ing = false;
+        DataManager.Instance.HeroNum = 0;
+        DataManager.Instance.itemEvent = false;
+        DataManager.Instance.battleEvent = false;
+        DataManager.Instance.coin = 0;
+
         pauseMenuUI.SetActive(false);
         DataManager.Instance.StageLevel = 0;
         SceneManager.LoadScene("Lobby"); // 로비 씬 재시작

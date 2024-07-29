@@ -11,8 +11,8 @@ public class MeleeHeroSetting : BasicHeroSetting
         //heroStress = 0;
         heroMinDamage += 1;
         heroMaxDamage += 1;
-        heroBasicSpeed += 2;
-        heroBasicDodgeRate += 5;
+        heroBasicSpeed += 1;
+        heroBasicDodgeRate += 2;
         heroClass = ClassName.Melee;
         heroBasicAccuracy = 100;
         heroBasicCriticalHit += 5;

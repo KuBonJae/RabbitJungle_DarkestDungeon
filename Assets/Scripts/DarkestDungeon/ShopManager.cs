@@ -12,7 +12,8 @@ public class ShopManager : MonoBehaviour
     public GameObject[] ShopItemBtns;
     public GameObject[] PlayerBtns;
     public GameObject[] PlayerPrefabs; // Melee / Marksman / Healer / Supporter / Tanker
-    int[] HowMuch = new int[11] { 150, 150, 300, 200, 450, 350, 200, 250, 250, 200, 500 };
+    int[] HowMuch = new int[11] { 150, 75, 300, 200, 450, 350, 200, 250, 250, 200, 500 };
+    public GameObject[] PlayerNameText;
 
     bool maxhp, heal, minD, maxD, spd, crit, deathResist, healAmount, stressAmount, stress, revive;
     int playerNum = 404;
@@ -25,6 +26,10 @@ public class ShopManager : MonoBehaviour
         for(int i=0; i<11; i++)
         {
             ShopItemBtns[i].transform.Find("Gold").GetComponent<TextMeshProUGUI>().text = HowMuch[i].ToString();
+        }
+        for(int i=0;i<4;i++)
+        {
+            PlayerNameText[i].GetComponent<TextMeshProUGUI>().text = "P" + (i + 1).ToString() + " : " + DataManager.Instance.PartyFormation[i].heroClass.ToString();
         }
     }
 
@@ -50,6 +55,12 @@ public class ShopManager : MonoBehaviour
         Time.timeScale = 1f;
         DataManager.Instance.StageLevel++;
         SceneManager.LoadScene("Game");
+    }
+
+    public void OnShopOutBtnClicked()
+    {
+        Time.timeScale = 1f;
+        GameObject.Find("GameObject_Shop").transform.Find("Canvas_Shop").gameObject.SetActive(false);
     }
 
     void BuyMaxHp(bool b)
@@ -313,7 +324,7 @@ public class ShopManager : MonoBehaviour
                         SelectedBuffName.GetComponent<TextMeshProUGUI>().text = "이미 최저치의 스트레스를\n가지고 있습니다.";
                     else
                     {
-                        DataManager.Instance.PartyFormation[playerNum].heroStress -= 10; // 버프 제공
+                        DataManager.Instance.PartyFormation[playerNum].heroStress -= 20; // 버프 제공
                         if (DataManager.Instance.PartyFormation[playerNum].heroStress < 0)
                         {
                             DataManager.Instance.PartyFormation[playerNum].heroStress = 0;
