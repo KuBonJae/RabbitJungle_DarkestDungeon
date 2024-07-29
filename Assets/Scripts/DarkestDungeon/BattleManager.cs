@@ -213,7 +213,12 @@ public class BattleManager : MonoBehaviour
                 {
                     DataManager.Instance.PartyFormation[i].heroBuffRemain--; // 버프 유지 횟수 감소
                     if (DataManager.Instance.PartyFormation[i].heroBuffRemain < 0)
-                        DataManager.Instance.PartyFormation[i].heroBasicProtection = 0;
+                    {
+                        if (DataManager.Instance.PartyFormation[i].heroClass == ClassName.Tanker)
+                            DataManager.Instance.PartyFormation[i].heroBasicProtection = 20;
+                        else
+                            DataManager.Instance.PartyFormation[i].heroBasicProtection = 0;
+                    }
                 }
             }
             shouldCheckingOrder = true;
@@ -1381,8 +1386,12 @@ public class BattleManager : MonoBehaviour
                         SkillIcons.SetActive(false);
                         for (int i = 0; i < 4; i++)
                         {
-                            if (DataManager.Instance.PartyFormation[i].heroBasicProtection != 20) // 버프가 없는 상태였다면
-                                DataManager.Instance.PartyFormation[i].heroBasicProtection = 20; // 버프 추가
+                            //if (DataManager.Instance.PartyFormation[i].heroBasicProtection != 20) // 버프가 없는 상태였다면
+                            //    DataManager.Instance.PartyFormation[i].heroBasicProtection = 20; // 버프 추가
+                            if (DataManager.Instance.PartyFormation[i].heroClass != ClassName.Tanker)
+                                DataManager.Instance.PartyFormation[i].heroBasicProtection = 20;
+                            else
+                                DataManager.Instance.PartyFormation[i].heroBasicProtection = 40;
                             DataManager.Instance.PartyFormation[i].heroBuffRemain = 2; // 버프 횟수 2턴
                         }
                         break;
