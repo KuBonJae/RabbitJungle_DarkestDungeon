@@ -12,7 +12,7 @@ public class ShopManager : MonoBehaviour
     public GameObject[] ShopItemBtns;
     public GameObject[] PlayerBtns;
     public GameObject[] PlayerPrefabs; // Melee / Marksman / Healer / Supporter / Tanker
-    int[] HowMuch = new int[11] { 150, 75, 300, 200, 450, 350, 200, 250, 250, 200, 500 };
+    int[] HowMuch = new int[11] { 150, 75, 300, 200, 450, 350, 200, 250, 250, 150, 500 };
     public GameObject[] PlayerNameText;
 
     bool maxhp, heal, minD, maxD, spd, crit, deathResist, healAmount, stressAmount, stress, revive;

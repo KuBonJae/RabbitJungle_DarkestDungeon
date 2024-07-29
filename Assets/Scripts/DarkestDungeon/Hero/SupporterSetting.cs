@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class SupporterSetting : BasicHeroSetting
 {
-    public int minStressDownAmount = 6;
-    public int maxStressDownAmount = 12;
+    public int minStressDownAmount = 8;
+    public int maxStressDownAmount = 14;
     public SupporterSetting()
     {
         //heroHp -= 3;

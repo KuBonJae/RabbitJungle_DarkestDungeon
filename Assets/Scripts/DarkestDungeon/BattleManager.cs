@@ -357,8 +357,8 @@ public class BattleManager : MonoBehaviour
         
         CurEnemy = WhoseTurn.Item1 - 10;
         // 적군의 스킬을 하나 랜덤하게 선택
-        int randomSkill = UnityEngine.Random.Range(0, 2); // 1번 or 2번 스킬
-        if (randomSkill == 0) // 오로지 데미지만 주는 스킬
+        int randomSkill = UnityEngine.Random.Range(0, 5); // 1번 or 2번 스킬
+        if (randomSkill < 3) // 오로지 데미지만 주는 스킬 60%
         {
             // 줄 데미지 선택
             int randomDmg = UnityEngine.Random.Range(DataManager.Instance.EnemyFormation[CurEnemy].MinDamage, DataManager.Instance.EnemyFormation[CurEnemy].MaxDamage + 1);
@@ -525,9 +525,9 @@ public class BattleManager : MonoBehaviour
 
                 if (DataManager.Instance.EnemyFormation[CurEnemy].enemyClass == EnemyClassName.Debuffer) // 모든 데미지가 스트레스
                 {
-                    DataManager.Instance.PartyFormation[HeroDmged].heroStress += randomDmg * 2;
-                    ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg * 2).ToString() + " 만큼의 스트레스");
-                    StartCoroutine(ShowDamageText((randomDmg * 2).ToString(), false, HeroDmged, false, false)); // 스트레스 데미지에 대한 텍스트
+                    DataManager.Instance.PartyFormation[HeroDmged].heroStress += randomDmg * 3;
+                    ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg * 3).ToString() + " 만큼의 스트레스");
+                    StartCoroutine(ShowDamageText((randomDmg * 3).ToString(), false, HeroDmged, false, false)); // 스트레스 데미지에 대한 텍스트
                     // 붕괴 시 팀원에게 확률적으로 추가 스트레스
                     for (int i = 0; i < 4; i++) 
                     {
@@ -635,7 +635,7 @@ public class BattleManager : MonoBehaviour
                     //float realFloatDmg = ((float)randomDmg / 2) * 100 *
                     //        ((100 - DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100) / 100;
                     //int realDmg = (int)Math.Ceiling(realFloatDmg);
-                    float realFloatDmg = ((float)randomDmg / 2f);
+                    float realFloatDmg = ((float)randomDmg);
                     realFloatDmg *= ((100f - (float)DataManager.Instance.PartyFormation[HeroDmged].heroBasicProtection - (float)DataManager.Instance.tempStats[HeroDmged].tempProtect) / 100f);
                     int realDmg = Convert.ToInt32(Math.Truncate(realFloatDmg));
 
@@ -682,9 +682,9 @@ public class BattleManager : MonoBehaviour
                         }
                     }
 
-                    DataManager.Instance.PartyFormation[HeroDmged].heroStress += randomDmg;
-                    ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + randomDmg.ToString() + " 만큼의 스트레스");
-                    StartCoroutine(ShowDamageText("<color=\"red\">" + realDmg.ToString() + "</color>\n" + randomDmg.ToString(), false, HeroDmged, false, false));
+                    DataManager.Instance.PartyFormation[HeroDmged].heroStress += randomDmg * 2;
+                    ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg * 2).ToString() + " 만큼의 스트레스");
+                    StartCoroutine(ShowDamageText("<color=\"red\">" + realDmg.ToString() + "</color>\n" + (randomDmg * 2).ToString(), false, HeroDmged, false, false));
 
                     // 붕괴 시 팀원에게 확률적으로 추가 스트레스
                     for (int i = 0; i < 4; i++)
@@ -695,8 +695,8 @@ public class BattleManager : MonoBehaviour
                             if (randomStress < 25) // 25%
                             {
                                 ShowBattleLog("Player" + (i + 1).ToString() + "의 <color=\"red\">\"부정적\"</color> 효과 발동!");
-                                DataManager.Instance.PartyFormation[HeroDmged].heroStress += randomDmg / 2;
-                                ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg / 2).ToString() + " 만큼의 추가 스트레스");
+                                DataManager.Instance.PartyFormation[HeroDmged].heroStress += randomDmg;
+                                ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg).ToString() + " 만큼의 추가 스트레스");
                                 //yield return new WaitForSecondsRealtime(2f);
 
                                 Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().color = Color.red;
@@ -720,10 +720,10 @@ public class BattleManager : MonoBehaviour
                             if (randomStress < 40) // 30%
                             {
                                 ShowBattleLog("Player" + (i + 1).ToString() + "의 <color=\"yellow\">\"긍정적\"</color> 효과 발동!");
-                                DataManager.Instance.PartyFormation[HeroDmged].heroStress -= randomDmg / 2;
+                                DataManager.Instance.PartyFormation[HeroDmged].heroStress -= randomDmg;
                                 if (DataManager.Instance.PartyFormation[HeroDmged].heroStress < 0)
                                     DataManager.Instance.PartyFormation[HeroDmged].heroStress = 0;
-                                ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg / 2).ToString() + " 만큼의 스트레스 회복");
+                                ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "에게 " + (randomDmg).ToString() + " 만큼의 스트레스 회복");
                                 //yield return new WaitForSecondsRealtime(2f);
 
                                 Serifu[i].transform.Find("Image").transform.Find("Serif").GetComponent<TextMeshProUGUI>().color = Color.white;
@@ -775,7 +775,7 @@ public class BattleManager : MonoBehaviour
                         //yield return new WaitForSecondsRealtime(3f);
                         yield return waitForCorruption;
 
-                        if (UnityEngine.Random.Range(1, 101) > 25)
+                        if (UnityEngine.Random.Range(1, 101) > 25) // 테스트 << 25로 바꿔줘야함
                         {
                             DataManager.Instance.PartyFormation[HeroDmged].Stress = Stress.Negative;
                             ShowBattleLog("Player" + (HeroDmged + 1).ToString() + " : <color=\"red\">부정적!</color>");
@@ -1041,7 +1041,7 @@ public class BattleManager : MonoBehaviour
                     {
                         if (DataManager.Instance.PartyFormation[CurHero].Stress == Stress.Negative && !DataManager.Instance.PartyFormation[CurHero].isDead)
                         {
-                            if (UnityEngine.Random.Range(0, 100) < 10) // 10%
+                            if (UnityEngine.Random.Range(0, 100) < 10) // 10% // 테스트 << 10으로 바꿔줘야함
                             {
                                 ShowBattleLog("Player" + (CurHero + 1).ToString() + "의 <color=\"red\">\"부정적\"</color> 효과 발동!");
                                 ShowBattleLog("Player" + (CurHero + 1).ToString() + "의 턴이 넘어갑니다!");
@@ -1235,7 +1235,7 @@ public class BattleManager : MonoBehaviour
                                 {
                                     if (j != CurHero && DataManager.Instance.PartyFormation[j].Stress == Stress.Positive && !DataManager.Instance.PartyFormation[i].isDead) // 공격자 제외 다른 이가 긍정적 효과일 때
                                     {
-                                        if (UnityEngine.Random.Range(0, 100) < 40) // 20%
+                                        if (UnityEngine.Random.Range(0, 100) < 40) // 40% // 테스트 << 40으로 바꿔야함
                                         {
                                             ShowBattleLog("Player" + (j + 1).ToString() + "의 <color=\"yellow\">\"긍정적\"</color> 효과 발동!");
                                             ShowBattleLog("Enemy" + (i + 1).ToString() + "에게 " + (dealingDmg / 2).ToString() + "만큼의 추가 데미지");
