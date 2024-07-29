@@ -418,6 +418,7 @@ public class BattleManager : MonoBehaviour
                     if (randomDeathDoor >= randomDeath) // 숫자가 더 크다 => 버텨냈다
                     {
                         ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 죽음을 버텨냈습니다. " + randomDeathDoor.ToString() + " / " + randomDeath.ToString());
+                        StartCoroutine(ShowDamageText("죽음 저항!", false, HeroDmged, false, true));
                         DataManager.Instance.PartyFormation[HeroDmged].heroBasicDeathDoor -= 5; // 영구적으로 죽문 확률 감소
                         ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 죽음에 대한 공포를 느낍니다. 스트레스 20 증가");
                         DataManager.Instance.PartyFormation[HeroDmged].heroStress += 20;
@@ -426,6 +427,7 @@ public class BattleManager : MonoBehaviour
                     else // 버텨내지 못했다
                     {
                         ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 <color=\"red\">사망</color>했습니다.");
+                        StartCoroutine(ShowDamageText("<color=\"red\">사망</color>", false, HeroDmged, false, true));
                         DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
                         HeroLeft--;
                         BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
@@ -462,6 +464,7 @@ public class BattleManager : MonoBehaviour
                     if (DataManager.Instance.PartyFormation[HeroDmged].heroHp <= 0)
                     {
                         ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 죽음의 문턱 상태입니다.");
+                        StartCoroutine(ShowDamageText("<color=\"red\">죽음의 문턱</color>", false, HeroDmged, false, true));
                         DataManager.Instance.PartyFormation[HeroDmged].heroHp = 0;
                     }
                 }
@@ -621,11 +624,13 @@ public class BattleManager : MonoBehaviour
                         {
                             DataManager.Instance.PartyFormation[HeroDmged].Stress = Stress.Negative;
                             ShowBattleLog("Player" + (HeroDmged + 1).ToString() + " : <color=\"red\">부정적!</color>");
+                            StartCoroutine(ShowDamageText("<color=\"red\">부정적</color>", false, HeroDmged, false, true));
                         }
                         else
                         {
                             DataManager.Instance.PartyFormation[HeroDmged].Stress = Stress.Positive;
                             ShowBattleLog("Player" + (HeroDmged + 1).ToString() + " : <color=\"yellow\">긍정적!</color>");
+                            StartCoroutine(ShowDamageText("<color=\"yellow\">긍정적</color>", false, HeroDmged, false, true));
                         }
                     }
                 }
@@ -678,6 +683,7 @@ public class BattleManager : MonoBehaviour
                         if (DataManager.Instance.PartyFormation[HeroDmged].heroHp <= 0)
                         {
                             ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 죽음의 문턱 상태입니다.");
+                            StartCoroutine(ShowDamageText("<color=\"red\">죽음의 문턱</color>", false, HeroDmged, false, true));
                             DataManager.Instance.PartyFormation[HeroDmged].heroHp = 0;
                         }
                     }
@@ -745,6 +751,7 @@ public class BattleManager : MonoBehaviour
                         if (DataManager.Instance.PartyFormation[HeroDmged].heroHp == 0)
                         {
                             ShowBattleLog("Player" + (HeroDmged + 1).ToString() + "(이)가 <color=\"red\">심장마비</color>로 <color=\"red\">사망</color>했습니다.");
+                            StartCoroutine(ShowDamageText("<color=\"red\">심장마비</color>", false, HeroDmged, false, true));
                             DataManager.Instance.PartyFormation[HeroDmged].isDead = true;
                             HeroLeft--;
                             BattleCanvas.transform.Find("Player" + (HeroDmged + 1).ToString()).gameObject.SetActive(false);
@@ -779,11 +786,13 @@ public class BattleManager : MonoBehaviour
                         {
                             DataManager.Instance.PartyFormation[HeroDmged].Stress = Stress.Negative;
                             ShowBattleLog("Player" + (HeroDmged + 1).ToString() + " : <color=\"red\">부정적!</color>");
+                            StartCoroutine(ShowDamageText("<color=\"red\">부정적!</color>", false, HeroDmged, false, true));
                         }
                         else
                         {
                             DataManager.Instance.PartyFormation[HeroDmged].Stress = Stress.Positive;
                             ShowBattleLog("Player" + (HeroDmged + 1).ToString() + " : <color=\"yellow\">긍정적!</color>");
+                            StartCoroutine(ShowDamageText("<color=\"yellow\">긍정적!</color>", false, HeroDmged, false, true));
                         }
 
                     }
@@ -2244,17 +2253,17 @@ public class BattleManager : MonoBehaviour
             DmgText.transform.localPosition = Vector3.zero;
             if(isAdditionalDmg)
             {
-                DmgText.transform.localPosition += new Vector3(-0.8f, 1.5f, 0);
+                DmgText.transform.localPosition += new Vector3(-1f, 0.6f, 0);
             }
             else
             {
                 if (isJustText)
                 {
-                    DmgText.transform.localPosition += new Vector3(-0.8f, 1f, 0);
+                    DmgText.transform.localPosition += new Vector3(-1f, 0.9f, 0);
                 }
                 else
                 {
-                    DmgText.transform.localPosition += new Vector3(-0.8f, 0.5f, 0);
+                    DmgText.transform.localPosition += new Vector3(-1f, 0.2f, 0);
                 }
             }
             StartCoroutine(MoveDamageText(DmgText));
@@ -2267,17 +2276,17 @@ public class BattleManager : MonoBehaviour
             DmgText.transform.localPosition = Vector3.zero;
             if (isAdditionalDmg)
             {
-                DmgText.transform.localPosition += new Vector3(0.8f, 1.5f, 0);
+                DmgText.transform.localPosition += new Vector3(1f, 0.6f, 0);
             }
             else
             {
                 if (isJustText)
                 {
-                    DmgText.transform.localPosition += new Vector3(0.8f, 1f, 0);
+                    DmgText.transform.localPosition += new Vector3(1f, 0.9f, 0);
                 }
                 else
                 {
-                    DmgText.transform.localPosition += new Vector3(0.8f, 0.5f, 0);
+                    DmgText.transform.localPosition += new Vector3(1f, 0.2f, 0);
                 }
             }
             StartCoroutine(MoveDamageText(DmgText));
